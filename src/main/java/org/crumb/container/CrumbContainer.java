@@ -1,5 +1,7 @@
 package org.crumb.container;
 
+import ch.qos.logback.classic.Logger;
+import lombok.extern.slf4j.Slf4j;
 import org.crumb.annotation.Autowired;
 import org.crumb.annotation.Lazy;
 import org.crumb.annotation.ScopeType;
@@ -13,12 +15,17 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
+@Slf4j
 public class CrumbContainer {
+
+    private static final String GREEN = "\u001B[32m";
+    private static final String RESET = "\u001B[0m";
 
     private boolean canOverride = false;
 
     private final BeanScanner scanner = new BeanScanner();
     private BeanFactory beanFactory;
+    private final Logger logger = (ch.qos.logback.classic.Logger) log;
 
     private final Class<?> configClass;
     private Object configObj;
@@ -34,6 +41,7 @@ public class CrumbContainer {
 
 
     public CrumbContainer(Class<?> configClass) {
+        logger.setLevel(LoggerManager.currentLevel);
         this.configClass = configClass;
         initContext();
     }
@@ -45,6 +53,7 @@ public class CrumbContainer {
     }
 
     private void processConfig() {
+        logger.debug(GREEN + "start processing configuration" + RESET);
         var scanPaths = scanner.getComponentScanPath(configClass);
         var classFiles = scanPaths.stream()
                 .map(scanner::getComponentFile)
@@ -57,22 +66,30 @@ public class CrumbContainer {
         beanMethods.addAll(scanner.getBeanMethod(configClass));
         configObj = ReflectUtil.createInstance(configClass);
         injectConfigObj();
+        logger.debug(GREEN + "end processing configuration" + RESET);
     }
 
     private void initChildrenModules() {
+        logger.debug(GREEN + "start initializing childrenModules" + RESET);
         beanFactory = new BeanFactory(clazz -> getBean(clazz, true));
+        logger.debug(GREEN + "end initializing childrenModules" + RESET);
     }
 
     private void createComponents() {
+        logger.debug(GREEN + "start creating components" + RESET);
         for(var def : remainBeanDefSet) {
-            createBean(def);
+            var component = createBean(def);
+            logger.debug("proactively created the component: " + component);
         }
         for(var method : beanMethods) {
-            createBean(method);
+            var component = createBean(method);
+            logger.debug("proactively created the component: " + component);
         }
+        logger.debug(GREEN + "end creating components" + RESET);
     }
 
     private Object getBean(Class<?> clazz, boolean useBeanMethod) {
+        logger.debug("want to find Bean which class: " + clazz.getName());
         var definition = getBeanDefinition(clazz);
         if (definition != null) {
             return createBean(definition);
@@ -85,6 +102,7 @@ public class CrumbContainer {
     }
 
     private Object createBean(BeanDefinition definition) {
+        logger.debug("want to get Bean: " + definition);
         if (definition.scope == ScopeType.PROTOTYPE) {
             var instance = prototypeCache.getOrDefault(definition, beanFactory.getBean(definition.clazz));
             injectBean(instance, definition, true);
@@ -103,12 +121,14 @@ public class CrumbContainer {
     }
 
     private Object createBean(Class<?> targetType) {
+        logger.debug("want to get Bean which class: " + targetType.getName());
         Method method = getBeanMethod(targetType);
         if (method == null) throw new BeanNotFoundException(targetType);
         return createBean(method);
     }
 
     private Object createBean(Method method) {
+        logger.debug("want to get Bean which use method: " + method);
         var instance = beanFactory.getBean(method, configObj);
         beanMethods.remove(method);
         registerBean(new BeanDefinition(instance.getClass(), ScopeType.SINGLETON), instance);
@@ -116,6 +136,7 @@ public class CrumbContainer {
     }
 
     private Object createBeanFromFactoryBean(Class<?> clazz) {
+        logger.debug("want to get Bean from FactoryBean, which class: " + clazz);
         var def = factoryBeanMap.get(clazz);
         if (def == null) return null;
         var factoryBean = (FactoryBean<?>) createBean(def);
@@ -131,12 +152,15 @@ public class CrumbContainer {
 
     private void injectBean(Object bean, BeanDefinition definition, boolean isPrototype) {
         if (!ReflectUtil.hasAnnotationOnField(definition.clazz, Autowired.class)) return;
+        logger.debug("want to inject Bean: " + bean + ", which definition: " + definition);
         var targetCache = isPrototype ? prototypeCache : earlySingletonObjects;
 
         if (!targetCache.containsKey(definition)) {
+            logger.debug("put " + bean + " into cache");
             targetCache.put(definition, bean);
             beanFactory.injectBean(bean);
             targetCache.remove(definition);
+            logger.debug("remove " + bean + " from cache");
         }
     }
 
@@ -153,6 +177,7 @@ public class CrumbContainer {
         if (!singletonObjects.containsKey(definition) || canOverride)  {
             singletonObjects.put(definition, object);
             beanDefSet.add(definition);
+            logger.debug("register Bean: " + object + ", which definition: " + definition);
             return true;
         } else return false;
     }
