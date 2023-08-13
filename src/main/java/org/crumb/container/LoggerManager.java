@@ -4,7 +4,7 @@ import ch.qos.logback.classic.Level;
 
 public class LoggerManager {
 
-    static Level currentLevel = Level.DEBUG;
+    static Level currentLevel = Level.OFF;
 
     public static void openLogger() {
         currentLevel = Level.DEBUG;
