@@ -26,6 +26,7 @@ public class CrumbContainer {
     private final BeanScanner scanner = new BeanScanner();
     private BeanFactory beanFactory;
     private final Logger logger = (ch.qos.logback.classic.Logger) log;
+    private PropFactory propFactory;
 
     private final Class<?> configClass;
     private Object configObj;
@@ -72,6 +73,7 @@ public class CrumbContainer {
     private void initChildrenModules() {
         logger.debug(GREEN + "start initializing childrenModules" + RESET);
         beanFactory = new BeanFactory(clazz -> getBean(clazz, true));
+        propFactory = new PropFactory();
         logger.debug(GREEN + "end initializing childrenModules" + RESET);
     }
 
@@ -105,6 +107,7 @@ public class CrumbContainer {
         logger.debug("want to get Bean: " + definition);
         if (definition.scope == ScopeType.PROTOTYPE) {
             var instance = prototypeCache.getOrDefault(definition, beanFactory.getBean(definition.clazz));
+            propFactory.setPropsValue(instance);
             injectBean(instance, definition, true);
             return instance;
         }
@@ -113,6 +116,7 @@ public class CrumbContainer {
         if (instance == null) {
             remainBeanDefSet.remove(definition);
             instance = beanFactory.getBean(definition.clazz);
+            propFactory.setPropsValue(instance);
             injectBean(instance, definition, false);
             registerBean(definition, instance);
         }
@@ -166,6 +170,7 @@ public class CrumbContainer {
 
     private void injectConfigObj() {
         if (!ReflectUtil.hasAnnotationOnField(configClass, Autowired.class)) return;
+        propFactory.setPropsValue(configObj);
         beanFactory.injectBean(configObj);
     }
 

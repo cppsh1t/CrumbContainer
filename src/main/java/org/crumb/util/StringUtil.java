@@ -1,5 +1,7 @@
 package org.crumb.util;
 
+import java.util.Arrays;
+
 public class StringUtil {
 
     public static String toLowerFirstChar(String str) {
@@ -52,5 +54,13 @@ public class StringUtil {
         // 提取两个反斜杠之间的字符串
 
         return inputString.substring(slash2Index + 1, slash3Index);
+    }
+
+    public static String[] removeFirstElement(String[] array) {
+        if (array == null || array.length <= 1) {
+            return new String[0]; // 返回一个空数组
+        }
+
+        return Arrays.copyOfRange(array, 1, array.length);
     }
 }

@@ -9,9 +9,9 @@ import org.crumb.container.LoggerManager;
 public class MainTest {
 
     public static void main(String[] args) {
-//        LoggerManager.closeLogger();
+        LoggerManager.openLogger();
         var container = new CrumbContainer(AppConfig.class);
-        container.getBean(Shit.class);
-        container.getBean(Shit.class);
+        var poop = container.getBean(Poop.class);
+        System.out.println(poop.getWeight());
     }
 }
