@@ -1,15 +1,12 @@
 package com.entity;
 
-import org.crumb.annotation.Component;
-import org.crumb.annotation.Scope;
-import org.crumb.annotation.ScopeType;
-import org.crumb.annotation.Values;
+import org.crumb.annotation.*;
 
 @Component
 @Scope(ScopeType.PROTOTYPE)
-public class Poop {
+public class Stone {
 
-    @Values("poop.weight")
+    @Autowired
     private int weight;
 
     public int getWeight() {

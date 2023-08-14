@@ -1,4 +1,4 @@
-package org.crumb.container;
+package org.crumb.core;
 
 import ch.qos.logback.classic.Logger;
 import lombok.extern.slf4j.Slf4j;
@@ -38,14 +38,14 @@ public class PropFactory {
     }
 
     private void parseYaml(String path) {
-        log.debug("parse yaml: " + path);
+        logger.debug("parse yaml: " + path);
         try (InputStream inputStream = classLoader.getResourceAsStream(path)) {
             if (inputStream == null) return;
             Map<String, Object> data = parser.load(inputStream);
             valuesData.add(data);
-            log.debug("and the prop: " + data);
+            logger.debug("and the prop: " + data);
         } catch (IOException exception) {
-            log.debug("can't find yaml: " + path);
+            logger.debug("can't find yaml: " + path);
         }
     }
 
@@ -60,15 +60,16 @@ public class PropFactory {
         String name = field.getDeclaredAnnotation(Values.class).value();
         Object value = getPropValue(name);
         ReflectUtil.setFieldValue(field, target, value);
-        log.debug("set value: " + value + " on field: " + field + " from Prop");
+        logger.debug("set value: " + value + " on field: " + field + " from Prop");
     }
 
-    private Object getPropValue(String names) {
+    public Object getPropValue(String names) {
         String[] nameArray = names.split("\\.");
         String firstName = nameArray[0];
         nameArray = StringUtil.removeFirstElement(nameArray);
 
         Object firstValue = valuesData.stream()
+                .filter(Objects::nonNull)
                 .map(map -> map.get(firstName))
                 .filter(Objects::nonNull)
                 .findFirst().orElseThrow(() -> new ValueNotFoundException(names));

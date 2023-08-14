@@ -1,4 +1,4 @@
-package org.crumb.container;
+package org.crumb.core;
 
 import ch.qos.logback.classic.Logger;
 import lombok.extern.slf4j.Slf4j;
@@ -23,10 +23,10 @@ public class CrumbContainer {
 
     private boolean canOverride = false;
 
-    private final BeanScanner scanner = new BeanScanner();
+    private BeanScanner scanner;
     private BeanFactory beanFactory;
     private final Logger logger = (ch.qos.logback.classic.Logger) log;
-    private PropFactory propFactory;
+    private final PropFactory propFactory = new PropFactory();
 
     private final Class<?> configClass;
     private Object configObj;
@@ -40,8 +40,8 @@ public class CrumbContainer {
     private final Map<BeanDefinition, Object> prototypeCache = new ConcurrentHashMap<>();
     private final Map<Class<?>, BeanDefinition> factoryBeanMap = new ConcurrentHashMap<>();
 
-
     public CrumbContainer(Class<?> configClass) {
+        LoggerManager.setLoggerLevel((String) propFactory.getPropValue("crumb.logger.level"));
         logger.setLevel(LoggerManager.currentLevel);
         this.configClass = configClass;
         initContext();
@@ -72,8 +72,8 @@ public class CrumbContainer {
 
     private void initChildrenModules() {
         logger.debug(GREEN + "start initializing childrenModules" + RESET);
+        scanner = new BeanScanner();
         beanFactory = new BeanFactory(clazz -> getBean(clazz, true));
-        propFactory = new PropFactory();
         logger.debug(GREEN + "end initializing childrenModules" + RESET);
     }
 
@@ -91,15 +91,16 @@ public class CrumbContainer {
     }
 
     private Object getBean(Class<?> clazz, boolean useBeanMethod) {
-        logger.debug("want to find Bean which class: " + clazz.getName());
-        var definition = getBeanDefinition(clazz);
+        var finalClazz = ClassConverter.convertPrimitiveType(clazz);
+        logger.debug("want to find Bean which class: " + finalClazz.getName());
+        var definition = getBeanDefinition(finalClazz);
         if (definition != null) {
             return createBean(definition);
         } else if (useBeanMethod) {
-            return createBean(clazz);
+            return createBean(finalClazz);
         } else {
-            return Optional.ofNullable(createBeanFromFactoryBean(clazz))
-                    .orElseThrow(() -> new BeanNotFoundException(clazz));
+            return Optional.ofNullable(createBeanFromFactoryBean(finalClazz))
+                    .orElseThrow(() -> new BeanNotFoundException(finalClazz));
         }
     }
 

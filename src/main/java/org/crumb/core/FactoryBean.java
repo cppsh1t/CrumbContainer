@@ -1,4 +1,4 @@
-package org.crumb.container;
+package org.crumb.core;
 
 public interface FactoryBean<T> {
 

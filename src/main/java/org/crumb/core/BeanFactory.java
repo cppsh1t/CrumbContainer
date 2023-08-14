@@ -1,4 +1,4 @@
-package org.crumb.container;
+package org.crumb.core;
 
 import ch.qos.logback.classic.Logger;
 import lombok.extern.slf4j.Slf4j;

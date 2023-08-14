@@ -5,14 +5,12 @@ import org.crumb.annotation.Component;
 import org.crumb.annotation.Lazy;
 
 @Component
-public class Bitch {
+@Lazy
+public class Human {
     String name;
 
     @Autowired
-    Dildo dildo;
-
-    @Autowired
-    public Bitch(String name) {
+    public Human(String name) {
         this.name = name;
         System.out.println(this + " born");
     }
@@ -26,8 +24,4 @@ public class Bitch {
         System.out.println("名字改了");
     }
 
-    public void rut() {
-        introduce();
-        System.out.println("And I am using a dildo which length were " + dildo.getLength() + "cm to FUCK my asshole!");
-    }
 }
