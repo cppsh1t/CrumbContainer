@@ -90,6 +90,31 @@ public class PropFactory {
         throw new ValueNotFoundException(names);
     }
 
+    public Object getPropValueNoThrow(String names) {
+        String[] nameArray = names.split("\\.");
+        String firstName = nameArray[0];
+        nameArray = StringUtil.removeFirstElement(nameArray);
 
+        Object firstValue = valuesData.stream()
+                .filter(Objects::nonNull)
+                .map(map -> map.get(firstName))
+                .filter(Objects::nonNull)
+                .findFirst().orElse(null);
+        if (!(firstValue instanceof Map)) {
+            return firstValue;
+        }
+
+        Map<String, Object> query = (Map<String, Object>) firstValue;
+        for(String name : nameArray) {
+            Object value = Optional.ofNullable(query.get(name)).orElse(null) ;
+            if (value instanceof Map) {
+                query = (Map<String, Object>) value;
+            } else {
+                return value;
+            }
+        }
+
+        return null;
+    }
 
 }

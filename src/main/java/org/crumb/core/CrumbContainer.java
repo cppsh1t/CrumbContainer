@@ -41,7 +41,9 @@ public class CrumbContainer {
     private final Map<Class<?>, BeanDefinition> factoryBeanMap = new ConcurrentHashMap<>();
 
     public CrumbContainer(Class<?> configClass) {
-        LoggerManager.setLoggerLevel((String) propFactory.getPropValue("crumb.logger.level"));
+        var level = (String) Optional.ofNullable(propFactory.getPropValueNoThrow("crumb.logger.level"))
+                .orElse("INFO");
+        LoggerManager.setLoggerLevel(level);
         logger.setLevel(LoggerManager.currentLevel);
         this.configClass = configClass;
         initContext();

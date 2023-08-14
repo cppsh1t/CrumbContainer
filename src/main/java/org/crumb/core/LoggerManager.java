@@ -6,7 +6,7 @@ public class LoggerManager {
 
     static Level currentLevel = Level.INFO;
 
-    static void setLoggerLevel(String level) {
+    public static void setLoggerLevel(String level) {
         switch (level) {
             case "INFO" -> currentLevel = Level.INFO;
             case "DEBUG" -> currentLevel = Level.DEBUG;
@@ -16,5 +16,9 @@ public class LoggerManager {
             case "OFF" -> currentLevel = Level.OFF;
             case "ALL" -> currentLevel = Level.ALL;
         }
+    }
+
+    public static void setCurrentLevel(Level level) {
+        currentLevel = level;
     }
 }
