@@ -28,11 +28,11 @@ public class BeanFactory {
                     .map(ClassConverter::convertPrimitiveType)
                     .map(objectGetter::getObject).toArray();
             var instance = ReflectUtil.createInstance(autowiredCon, params);
-            logger.debug("make the instance: " + instance + ", which use Autowired-Constructor: " + autowiredCon);
+            logger.debug("make the instance: {}, which use Autowired-Constructor: {}", instance, autowiredCon);
             return instance;
         } else {
             var instance = ReflectUtil.createInstance(clazz);
-            logger.debug("make the instance: " + instance + ", which use noArgs-Constructor");
+            logger.debug("make the instance: {}, which use noArgs-Constructor", instance);
             return instance;
         }
 
@@ -42,14 +42,14 @@ public class BeanFactory {
     public Object getBean(Method method, Object invoker) {
         if (method.getParameterCount() == 0) {
             var instance = ReflectUtil.invokeMethod(method, invoker);
-            logger.debug("make the instance: " + instance + ", which use method: " + method);
+            logger.debug("make the instance: {}, which use method: {}", instance, method);
             return instance;
         } else {
             var params = Arrays.stream(method.getParameterTypes())
                     .map(objectGetter::getObject)
                     .collect(Collectors.toList());
             var instance = ReflectUtil.invokeMethod(method, invoker, params);
-            logger.debug("make the instance: " + instance + ", which use method: " + method + ", params: " + params);
+            logger.debug("make the instance: {}, which use method: {}, params: {}", instance, method, params);
             return instance;
         }
     }
@@ -59,7 +59,7 @@ public class BeanFactory {
         fields.forEach(field -> {
             var value = objectGetter.getObject(field.getType());
             ReflectUtil.setFieldValue(field, bean, value);
-            logger.debug("set value: " + value + " on field: " + field.getName() + ", targetBean: " + bean);
+            logger.debug("set value: {} on field: {}, targetBean: {}", value, field.getName(), bean);
         });
     }
 }

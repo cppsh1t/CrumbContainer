@@ -43,9 +43,9 @@ public class PropFactory {
             if (inputStream == null) return;
             Map<String, Object> data = parser.load(inputStream);
             valuesData.add(data);
-            logger.debug("and the prop: " + data);
+            logger.debug("add the prop: {}", data);
         } catch (IOException exception) {
-            logger.debug("can't find yaml: " + path);
+            logger.debug("can't find yaml: {}", path);
         }
     }
 
@@ -60,7 +60,7 @@ public class PropFactory {
         String name = field.getDeclaredAnnotation(Values.class).value();
         Object value = getPropValue(name);
         ReflectUtil.setFieldValue(field, target, value);
-        logger.debug("set value: " + value + " on field: " + field + " from Prop");
+        logger.debug("set value: {} on field: {} from Prop", value, field);
     }
 
     public Object getPropValue(String names) {

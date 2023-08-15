@@ -41,9 +41,8 @@ public class CrumbContainer {
     private final Map<Class<?>, BeanDefinition> factoryBeanMap = new ConcurrentHashMap<>();
 
     public CrumbContainer(Class<?> configClass) {
-        var level = (String) Optional.ofNullable(propFactory.getPropValueNoThrow("crumb.logger.level"))
-                .orElse("INFO");
-        LoggerManager.setLoggerLevel(level);
+        var level = (String) propFactory.getPropValueNoThrow("crumb.logger.level");
+        if (level != null) LoggerManager.setLoggerLevel(level);
         logger.setLevel(LoggerManager.currentLevel);
         this.configClass = configClass;
         initContext();
@@ -83,18 +82,18 @@ public class CrumbContainer {
         logger.debug(GREEN + "start creating components" + RESET);
         for(var def : remainBeanDefSet) {
             var component = createBean(def);
-            logger.debug("proactively created the component: " + component);
+            logger.debug("proactively created the component: {}", component);
         }
         for(var method : beanMethods) {
             var component = createBean(method);
-            logger.debug("proactively created the component: " + component);
+            logger.debug("proactively created the component: {}", component);
         }
         logger.debug(GREEN + "end creating components" + RESET);
     }
 
     private Object getBean(Class<?> clazz, boolean useBeanMethod) {
         var finalClazz = ClassConverter.convertPrimitiveType(clazz);
-        logger.debug("want to find Bean which class: " + finalClazz.getName());
+        logger.debug("want to find Bean which class: {}", finalClazz.getName());
         var definition = getBeanDefinition(finalClazz);
         if (definition != null) {
             return createBean(definition);
@@ -107,7 +106,7 @@ public class CrumbContainer {
     }
 
     private Object createBean(BeanDefinition definition) {
-        logger.debug("want to get Bean: " + definition);
+        logger.debug("want to get Bean: {}", definition);
         if (definition.scope == ScopeType.PROTOTYPE) {
             var instance = prototypeCache.getOrDefault(definition, beanFactory.getBean(definition.clazz));
             propFactory.setPropsValue(instance);
@@ -128,14 +127,14 @@ public class CrumbContainer {
     }
 
     private Object createBean(Class<?> targetType) {
-        logger.debug("want to get Bean which class: " + targetType.getName());
+        logger.debug("want to get Bean which class: {}", targetType.getName());
         Method method = getBeanMethod(targetType);
         if (method == null) throw new BeanNotFoundException(targetType);
         return createBean(method);
     }
 
     private Object createBean(Method method) {
-        logger.debug("want to get Bean which use method: " + method);
+        logger.debug("want to get Bean which use method: {}", method);
         var instance = beanFactory.getBean(method, configObj);
         beanMethods.remove(method);
         registerBean(new BeanDefinition(instance.getClass(), ScopeType.SINGLETON), instance);
@@ -143,7 +142,7 @@ public class CrumbContainer {
     }
 
     private Object createBeanFromFactoryBean(Class<?> clazz) {
-        logger.debug("want to get Bean from FactoryBean, which class: " + clazz);
+        logger.debug("want to get Bean from FactoryBean, which class: {}", clazz);
         var def = factoryBeanMap.get(clazz);
         if (def == null) return null;
         var factoryBean = (FactoryBean<?>) createBean(def);
@@ -159,15 +158,15 @@ public class CrumbContainer {
 
     private void injectBean(Object bean, BeanDefinition definition, boolean isPrototype) {
         if (!ReflectUtil.hasAnnotationOnField(definition.clazz, Autowired.class)) return;
-        logger.debug("want to inject Bean: " + bean + ", which definition: " + definition);
+        logger.debug("want to inject Bean: {}, which definition: {}", bean, definition);
         var targetCache = isPrototype ? prototypeCache : earlySingletonObjects;
 
         if (!targetCache.containsKey(definition)) {
-            logger.debug("put " + bean + " into cache");
+            logger.debug("put {} into cache", bean);
             targetCache.put(definition, bean);
             beanFactory.injectBean(bean);
             targetCache.remove(definition);
-            logger.debug("remove " + bean + " from cache");
+            logger.debug("remove {} from cache", bean);
         }
     }
 
@@ -185,7 +184,7 @@ public class CrumbContainer {
         if (!singletonObjects.containsKey(definition) || canOverride)  {
             singletonObjects.put(definition, object);
             beanDefSet.add(definition);
-            logger.debug("register Bean: " + object + ", which definition: " + definition);
+            logger.debug("register Bean: {}, which definition: {}", object, definition);
             return true;
         } else return false;
     }

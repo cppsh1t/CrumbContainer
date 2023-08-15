@@ -31,12 +31,12 @@ public class BeanScanner {
         if (clazz.isAnnotationPresent(ComponentScan.class)) {
             var path = clazz.getDeclaredAnnotation(ComponentScan.class).value();
             scanPaths.add(path);
-            logger.debug("get componentScanPath: " + path);
+            logger.debug("get componentScanPath: {}", path);
         }
         if (clazz.isAnnotationPresent(ComponentScans.class)) {
             var paths = clazz.getDeclaredAnnotation(ComponentScans.class).value();
             scanPaths.addAll(Arrays.asList(paths));
-            Arrays.stream(paths).forEach(p -> logger.debug("get componentScanPath: " + p));
+            Arrays.stream(paths).forEach(p -> logger.debug("get componentScanPath: {}", p));
         }
         return scanPaths;
     }
@@ -62,11 +62,11 @@ public class BeanScanner {
 
         if (isSingleClass) {
             files.add(file);
-            logger.debug("get componentFile: " + file);
+            logger.debug("get componentFile: {}", file);
         } else if (file.isDirectory()) {
             List<File> childrenFiles = FileUtil.getAllFiles(file);
             files.addAll(childrenFiles);
-            childrenFiles.forEach(f -> logger.debug("get componentFile: " + f));
+            childrenFiles.forEach(f -> logger.debug("get componentFile: {}", f));
         }
         return files;
     }
@@ -90,7 +90,7 @@ public class BeanScanner {
 
                 var definition = new BeanDefinition(clazz, scope);
                 definitions.add(definition);
-                logger.debug("get beanDefinition: " + definition);
+                logger.debug("get beanDefinition: {}", definition);
             } catch (ClassNotFoundException e) {
                 e.printStackTrace();
             }
@@ -103,7 +103,7 @@ public class BeanScanner {
                 ? Arrays.stream(configurationClass.getDeclaredMethods())
                         .filter(method -> method.isAnnotationPresent(Bean.class)
                                         && method.getReturnType() != void.class)
-                        .peek(method -> logger.debug("get beanMethod: " + method))
+                        .peek(method -> logger.debug("get beanMethod: {}", method))
                         .collect(Collectors.toList())
                 : new ArrayList<>();
     }
@@ -113,7 +113,7 @@ public class BeanScanner {
         definitions.forEach(def -> {
             if (FactoryBean.class.isAssignableFrom(def.clazz)) {
                 var beanClass = ReflectUtil.getFirstParamFromGenericInterface(def.clazz, FactoryBean.class);
-                logger.debug("get factoryBeanDefinition: " + def + ", which getObjectType: " + beanClass.getName());
+                logger.debug("get factoryBeanDefinition: {}, which getObjectType: {}", def, beanClass.getName());
                 map.put(beanClass, def);
             }
         });

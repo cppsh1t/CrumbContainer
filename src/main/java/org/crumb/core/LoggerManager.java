@@ -18,7 +18,7 @@ public class LoggerManager {
         }
     }
 
-    public static void setCurrentLevel(Level level) {
+    public static void setLoggerLevel(Level level) {
         currentLevel = level;
     }
 }
