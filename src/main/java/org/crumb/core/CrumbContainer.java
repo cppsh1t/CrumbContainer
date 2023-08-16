@@ -212,4 +212,13 @@ public class CrumbContainer {
     public void setOverride(boolean canOverride) {
         this.canOverride = canOverride;
     }
+
+    public void close() {
+        singletonObjects.clear();
+        beanDefSet.clear();
+        remainBeanDefSet.clear();
+        beanMethods.clear();
+        remainBeanMethods.clear();
+        factoryBeanMap.clear();
+    }
 }
