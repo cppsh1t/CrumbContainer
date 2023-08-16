@@ -1,6 +1,5 @@
 package org.crumb.core;
 
-import ch.qos.logback.classic.Logger;
 import lombok.extern.slf4j.Slf4j;
 import org.crumb.annotation.Autowired;
 import org.crumb.annotation.Lazy;
@@ -25,7 +24,6 @@ public class CrumbContainer {
 
     private BeanScanner scanner;
     private BeanFactory beanFactory;
-    private final Logger logger = (ch.qos.logback.classic.Logger) log;
     private final PropFactory propFactory = new PropFactory();
 
     private final Class<?> configClass;
@@ -43,9 +41,6 @@ public class CrumbContainer {
 
     public CrumbContainer(Class<?> configClass) {
         propFactory.logBanner();
-        var level = (String) propFactory.getPropValueNoThrow("crumb.logger.level");
-        if (level != null) LoggerManager.setLoggerLevel(level);
-        logger.setLevel(LoggerManager.currentLevel);
         this.configClass = configClass;
         initContext();
     }
@@ -57,7 +52,7 @@ public class CrumbContainer {
     }
 
     private void processConfig() {
-        logger.debug(GREEN + "start processing configuration" + RESET);
+        log.debug(GREEN + "start processing configuration" + RESET);
         var scanPaths = scanner.getComponentScanPath(configClass);
         var classFiles = scanPaths.stream()
                 .map(scanner::getComponentFile)
@@ -74,32 +69,32 @@ public class CrumbContainer {
 
         configObj = ReflectUtil.createInstance(configClass);
         injectConfigObj();
-        logger.debug(GREEN + "end processing configuration" + RESET);
+        log.debug(GREEN + "end processing configuration" + RESET);
     }
 
     private void initChildrenModules() {
-        logger.debug(GREEN + "start initializing childrenModules" + RESET);
+        log.debug(GREEN + "start initializing childrenModules" + RESET);
         scanner = new BeanScanner();
         beanFactory = new BeanFactory(clazz -> getBeanInside(clazz));
-        logger.debug(GREEN + "end initializing childrenModules" + RESET);
+        log.debug(GREEN + "end initializing childrenModules" + RESET);
     }
 
     private void createComponents() {
-        logger.debug(GREEN + "start creating components" + RESET);
+        log.debug(GREEN + "start creating components" + RESET);
         for(var def : remainBeanDefSet) {
             var component = createBean(def);
-            logger.debug("proactively created the component: {}", component);
+            log.debug("proactively created the component: {}", component);
         }
         for(var method : remainBeanMethods) {
             var component = createBean(method);
-            logger.debug("proactively created the component: {}", component);
+            log.debug("proactively created the component: {}", component);
         }
-        logger.debug(GREEN + "end creating components" + RESET);
+        log.debug(GREEN + "end creating components" + RESET);
     }
 
     private Object getBeanInside(Class<?> clazz) {
         var finalClazz = ClassConverter.convertPrimitiveType(clazz);
-        logger.debug("want to find Bean which class: {}", finalClazz.getName());
+        log.debug("want to find Bean which class: {}", finalClazz.getName());
         var definition = getBeanDefinition(finalClazz);
         if (definition != null) {
             return createBean(definition);
@@ -115,7 +110,7 @@ public class CrumbContainer {
     }
 
     private Object createBean(BeanDefinition definition) {
-        logger.debug("want to get Bean: {}", definition);
+        log.debug("want to get Bean: {}", definition);
         if (definition.scope == ScopeType.PROTOTYPE) {
             var instance = prototypeCache.getOrDefault(definition, beanFactory.getBean(definition.clazz));
             propFactory.setPropsValue(instance);
@@ -136,14 +131,14 @@ public class CrumbContainer {
     }
 
     private Object createBean(Class<?> targetType) {
-        logger.debug("want to get Bean which class: {}", targetType.getName());
+        log.debug("want to get Bean which class: {}", targetType.getName());
         Method method = getBeanMethod(targetType);
         if (method == null) return null;
         return createBean(method);
     }
 
     private Object createBean(Method method) {
-        logger.debug("want to get Bean which use method: {}", method);
+        log.debug("want to get Bean which use method: {}", method);
         var instance = beanFactory.getBean(method, configObj);
         remainBeanMethods.remove(method);
         registerBean(new BeanDefinition(instance.getClass(), ScopeType.SINGLETON), instance);
@@ -151,7 +146,7 @@ public class CrumbContainer {
     }
 
     private Object createBeanFromFactoryBean(Class<?> clazz) {
-        logger.debug("want to get Bean from FactoryBean, which class: {}", clazz);
+        log.debug("want to get Bean from FactoryBean, which class: {}", clazz);
         var def = factoryBeanMap.get(clazz);
         if (def == null) return null;
         var factoryBean = (FactoryBean<?>) createBean(def);
@@ -167,15 +162,15 @@ public class CrumbContainer {
 
     private void injectBean(Object bean, BeanDefinition definition, boolean isPrototype) {
         if (!ReflectUtil.hasAnnotationOnField(definition.clazz, Autowired.class)) return;
-        logger.debug("want to inject Bean: {}, which definition: {}", bean, definition);
+        log.debug("want to inject Bean: {}, which definition: {}", bean, definition);
         var targetCache = isPrototype ? prototypeCache : earlySingletonObjects;
 
         if (!targetCache.containsKey(definition)) {
-            logger.debug("put {} into cache", bean);
+            log.debug("put {} into cache", bean);
             targetCache.put(definition, bean);
             beanFactory.injectBean(bean);
             targetCache.remove(definition);
-            logger.debug("remove {} from cache", bean);
+            log.debug("remove {} from cache", bean);
         }
     }
 
@@ -193,7 +188,7 @@ public class CrumbContainer {
         if (!singletonObjects.containsKey(definition) || canOverride)  {
             singletonObjects.put(definition, object);
             beanDefSet.add(definition);
-            logger.debug("register Bean: {}, which definition: {}", object, definition);
+            log.debug("register Bean: {}, which definition: {}", object, definition);
             return true;
         } else return false;
     }

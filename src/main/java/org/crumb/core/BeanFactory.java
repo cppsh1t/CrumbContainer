@@ -14,11 +14,9 @@ import java.util.stream.Collectors;
 public class BeanFactory {
 
     private final ObjectGetter objectGetter;
-    private final Logger logger = (ch.qos.logback.classic.Logger) log;
 
     public BeanFactory(ObjectGetter objectGetter) {
         this.objectGetter = objectGetter;
-        logger.setLevel(LoggerManager.currentLevel);
     }
 
     public Object getBean(Class<?> clazz) {
@@ -28,11 +26,11 @@ public class BeanFactory {
                     .map(ClassConverter::convertPrimitiveType)
                     .map(objectGetter::getObject).toArray();
             var instance = ReflectUtil.createInstance(autowiredCon, params);
-            logger.debug("make the instance: {}, which use Autowired-Constructor: {}", instance, autowiredCon);
+            log.debug("make the instance: {}, which use Autowired-Constructor: {}", instance, autowiredCon);
             return instance;
         } else {
             var instance = ReflectUtil.createInstance(clazz);
-            logger.debug("make the instance: {}, which use noArgs-Constructor", instance);
+            log.debug("make the instance: {}, which use noArgs-Constructor", instance);
             return instance;
         }
 
@@ -42,14 +40,14 @@ public class BeanFactory {
     public Object getBean(Method method, Object invoker) {
         if (method.getParameterCount() == 0) {
             var instance = ReflectUtil.invokeMethod(method, invoker);
-            logger.debug("make the instance: {}, which use method: {}", instance, method);
+            log.debug("make the instance: {}, which use method: {}", instance, method);
             return instance;
         } else {
             var params = Arrays.stream(method.getParameterTypes())
                     .map(objectGetter::getObject)
                     .collect(Collectors.toList());
             var instance = ReflectUtil.invokeMethod(method, invoker, params);
-            logger.debug("make the instance: {}, which use method: {}, params: {}", instance, method, params);
+            log.debug("make the instance: {}, which use method: {}, params: {}", instance, method, params);
             return instance;
         }
     }
@@ -59,7 +57,7 @@ public class BeanFactory {
         fields.forEach(field -> {
             var value = objectGetter.getObject(field.getType());
             ReflectUtil.setFieldValue(field, bean, value);
-            logger.debug("set value: {} on field: {}, targetBean: {}", value, field.getName(), bean);
+            log.debug("set value: {} on field: {}, targetBean: {}", value, field.getName(), bean);
         });
     }
 }

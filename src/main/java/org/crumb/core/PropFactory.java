@@ -19,7 +19,6 @@ import java.util.*;
 @Slf4j
 public class PropFactory {
 
-    private final Logger logger = (ch.qos.logback.classic.Logger) log;
     private static final Set<String> filePaths = new HashSet<>();
     private final Yaml parser = new Yaml();
     private final List<Map<String, Object>> valuesData = new ArrayList<>();
@@ -31,7 +30,6 @@ public class PropFactory {
     }
 
     public PropFactory() {
-        logger.setLevel(LoggerManager.currentLevel);
         filePaths.add(defaultPath);
         filePaths.forEach(this::parseYaml);
     }
@@ -53,14 +51,14 @@ public class PropFactory {
     }
 
     private void parseYaml(String path) {
-        logger.debug("parse yaml: " + path);
+        log.debug("parse yaml: {}", path);
         try (InputStream inputStream = classLoader.getResourceAsStream(path)) {
             if (inputStream == null) return;
             Map<String, Object> data = parser.load(inputStream);
             valuesData.add(data);
-            logger.debug("add the prop: {}", data);
+            log.debug("add the prop: {}", data);
         } catch (IOException exception) {
-            logger.debug("can't find yaml: {}", path);
+            log.debug("can't find yaml: {}", path);
         }
     }
 
@@ -75,7 +73,7 @@ public class PropFactory {
         String name = field.getDeclaredAnnotation(Values.class).value();
         Object value = getPropValue(name);
         ReflectUtil.setFieldValue(field, target, value);
-        logger.debug("set value: {} on field: {} from Prop", value, field);
+        log.debug("set value: {} on field: {} from Prop", value, field);
     }
 
     public Object getPropValue(String names) {
