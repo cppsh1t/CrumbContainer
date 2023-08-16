@@ -5,7 +5,6 @@ import org.crumb.annotation.Component;
 import org.crumb.annotation.Lazy;
 
 @Component
-@Lazy
 public class Human {
     String name;
 

@@ -34,6 +34,7 @@ public class CrumbContainer {
     private final Set<BeanDefinition> beanDefSet = new HashSet<>();
     private final Set<Method> beanMethods = ConcurrentHashMap.newKeySet();
     private final Set<BeanDefinition> remainBeanDefSet = ConcurrentHashMap.newKeySet();
+    private final Set<Method> remainBeanMethods = ConcurrentHashMap.newKeySet();
 
     private final Map<BeanDefinition, Object> singletonObjects = new ConcurrentHashMap<>();
     private final Map<BeanDefinition, Object> earlySingletonObjects = new ConcurrentHashMap<>();
@@ -65,7 +66,11 @@ public class CrumbContainer {
         factoryBeanMap.putAll(scanner.getFactoryBeanDefinition(beanDefSet));
         remainBeanDefSet.addAll(beanDefSet.stream().filter(def -> def.scope == ScopeType.SINGLETON
                 && !def.clazz.isAnnotationPresent(Lazy.class)).collect(Collectors.toSet()));
+
         beanMethods.addAll(scanner.getBeanMethod(configClass));
+        remainBeanMethods.addAll(beanMethods.stream()
+                .filter(method -> !method.isAnnotationPresent(Lazy.class)).collect(Collectors.toSet()));
+
         configObj = ReflectUtil.createInstance(configClass);
         injectConfigObj();
         logger.debug(GREEN + "end processing configuration" + RESET);
@@ -74,7 +79,7 @@ public class CrumbContainer {
     private void initChildrenModules() {
         logger.debug(GREEN + "start initializing childrenModules" + RESET);
         scanner = new BeanScanner();
-        beanFactory = new BeanFactory(clazz -> getBean(clazz, true));
+        beanFactory = new BeanFactory(clazz -> getBeanInside(clazz));
         logger.debug(GREEN + "end initializing childrenModules" + RESET);
     }
 
@@ -84,24 +89,27 @@ public class CrumbContainer {
             var component = createBean(def);
             logger.debug("proactively created the component: {}", component);
         }
-        for(var method : beanMethods) {
+        for(var method : remainBeanMethods) {
             var component = createBean(method);
             logger.debug("proactively created the component: {}", component);
         }
         logger.debug(GREEN + "end creating components" + RESET);
     }
 
-    private Object getBean(Class<?> clazz, boolean useBeanMethod) {
+    private Object getBeanInside(Class<?> clazz) {
         var finalClazz = ClassConverter.convertPrimitiveType(clazz);
         logger.debug("want to find Bean which class: {}", finalClazz.getName());
         var definition = getBeanDefinition(finalClazz);
         if (definition != null) {
             return createBean(definition);
-        } else if (useBeanMethod) {
-            return createBean(finalClazz);
         } else {
-            return Optional.ofNullable(createBeanFromFactoryBean(finalClazz))
-                    .orElseThrow(() -> new BeanNotFoundException(finalClazz));
+             var bean = createBean(finalClazz);
+             if (bean == null)
+             {
+                 bean = Optional.ofNullable(createBeanFromFactoryBean(finalClazz))
+                         .orElseThrow(() -> new BeanNotFoundException(finalClazz));
+             }
+             return bean;
         }
     }
 
@@ -129,14 +137,14 @@ public class CrumbContainer {
     private Object createBean(Class<?> targetType) {
         logger.debug("want to get Bean which class: {}", targetType.getName());
         Method method = getBeanMethod(targetType);
-        if (method == null) throw new BeanNotFoundException(targetType);
+        if (method == null) return null;
         return createBean(method);
     }
 
     private Object createBean(Method method) {
         logger.debug("want to get Bean which use method: {}", method);
         var instance = beanFactory.getBean(method, configObj);
-        beanMethods.remove(method);
+        remainBeanMethods.remove(method);
         registerBean(new BeanDefinition(instance.getClass(), ScopeType.SINGLETON), instance);
         return instance;
     }
@@ -177,7 +185,7 @@ public class CrumbContainer {
     }
 
     public <T> T getBean(Class<T> clazz) {
-        return (T) getBean(clazz, false);
+        return (T) getBeanInside(clazz);
     }
 
     public boolean registerBean(BeanDefinition definition, Object object) {
