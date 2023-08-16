@@ -8,9 +8,12 @@ import org.crumb.util.ReflectUtil;
 import org.crumb.util.StringUtil;
 import org.yaml.snakeyaml.Yaml;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.lang.reflect.Field;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 @Slf4j
@@ -35,6 +38,18 @@ public class PropFactory {
 
     public static void addFilePath(String... paths) {
         filePaths.addAll(Arrays.asList(paths));
+    }
+
+    public void logBanner() {
+        try (InputStream inputStream = classLoader.getResourceAsStream("banner.txt");
+             var reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8));) {
+            String line = null;
+            while ((line = reader.readLine()) != null) {
+                System.out.println(line);
+            };
+        } catch (IOException exception) {
+            //do nothing
+        }
     }
 
     private void parseYaml(String path) {
