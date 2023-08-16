@@ -49,6 +49,7 @@ public class CrumbContainer {
         initChildrenModules();
         processConfig();
         createComponents();
+        log.info("Successfully started crumbContainer");
     }
 
     private void processConfig() {
