@@ -1,5 +1,7 @@
 package org.crumb.core;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
 import lombok.extern.slf4j.Slf4j;
 import org.crumb.annotation.Autowired;
 import org.crumb.annotation.Lazy;
@@ -8,6 +10,7 @@ import org.crumb.definition.BeanDefinition;
 import org.crumb.exception.BeanNotFoundException;
 import org.crumb.util.ClassConverter;
 import org.crumb.util.ReflectUtil;
+import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Method;
 import java.util.*;
@@ -211,6 +214,11 @@ public class CrumbContainer {
 
     public void setOverride(boolean canOverride) {
         this.canOverride = canOverride;
+    }
+
+    public static void setLoggerLevel(Level level) {
+        Logger logger = (Logger) LoggerFactory.getLogger("org.crumb.core");
+        logger.setLevel(level);
     }
 
     public void close() {
