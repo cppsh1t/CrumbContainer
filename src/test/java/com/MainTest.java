@@ -12,6 +12,5 @@ public class MainTest {
         CrumbContainer.setLoggerLevel(Level.DEBUG);
         var container = new CrumbContainer(AppConfig.class);
         System.out.println(container.getBean(Foo.class));
-
     }
 }

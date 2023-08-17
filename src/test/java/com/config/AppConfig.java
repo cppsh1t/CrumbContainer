@@ -1,10 +1,7 @@
 package com.config;
 
 import com.entity.Foo;
-import org.crumb.annotation.Bean;
-import org.crumb.annotation.ComponentScan;
-import org.crumb.annotation.Configuration;
-import org.crumb.annotation.Lazy;
+import org.crumb.annotation.*;
 
 import java.util.Random;
 

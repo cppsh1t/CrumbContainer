@@ -1,6 +1,5 @@
 package org.crumb.core;
 
-import ch.qos.logback.classic.Logger;
 import lombok.extern.slf4j.Slf4j;
 import org.crumb.annotation.Autowired;
 import org.crumb.util.ClassConverter;

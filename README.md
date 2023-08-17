@@ -1,9 +1,22 @@
 ## CrumbContainer
 
-这是一个小ioc框架, 主要是来测试我之前想的解决依赖的思路。
+这是一个小ioc框架， 主要是来测试我之前想的解决依赖的思路，所以aware, postprocess 啥的都没写
 
-之前写过一个ioc小框架, 但是写的很屎, 所以这次就写的很简单, 可行后再写个复杂的
+API基本和spring一样，但是只写了按class注入
 
-用法就不用写了, 因为没人会看到, 写这个README是因为项目里没有github会提示, 很烦
+用logback写了Logger，能看到依赖解决的过程，可以通过添加logback.xml修改，也可以通过下面的方法直接修改输出等级:
 
-下个版本把logger完善后就应该不会再动了
+```java
+CrumbContainer.setLoggerLevel(Level.DEBUG);
+```
+
+可以使用Values注解注入外部值，默认是application.yaml，可以通过下面的方法增加或者修改默认路径，只支持yaml格式:
+
+```java
+PropFactory.setDefaultPath("defaultPath");
+PropFactory.addFilePath("newPath");
+```
+
+
+
+

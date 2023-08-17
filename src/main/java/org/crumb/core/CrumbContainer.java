@@ -79,7 +79,7 @@ public class CrumbContainer {
     private void initChildrenModules() {
         log.debug(GREEN + "start initializing childrenModules" + RESET);
         scanner = new BeanScanner();
-        beanFactory = new BeanFactory(clazz -> getBeanInside(clazz));
+        beanFactory = new BeanFactory(this::getBeanInside);
         log.debug(GREEN + "end initializing childrenModules" + RESET);
     }
 
@@ -179,7 +179,6 @@ public class CrumbContainer {
     }
 
     private void injectConfigObj() {
-        if (!ReflectUtil.hasAnnotationOnField(configClass, Autowired.class)) return;
         propFactory.setPropsValue(configObj);
         beanFactory.injectBean(configObj);
     }
