@@ -9,7 +9,7 @@ import org.crumb.core.CrumbContainer;
 public class MainTest {
 
     public static void main(String[] args) {
-        CrumbContainer.setLoggerLevel(Level.DEBUG);
+        CrumbContainer.setLoggerLevel(Level.INFO);
         var container = new CrumbContainer(AppConfig.class);
         System.out.println(container.getBean(Foo.class));
         container.close();

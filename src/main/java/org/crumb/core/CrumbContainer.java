@@ -4,6 +4,7 @@ import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import lombok.extern.slf4j.Slf4j;
 import org.crumb.annotation.Autowired;
+import org.crumb.annotation.EnableAspectProxy;
 import org.crumb.annotation.Lazy;
 import org.crumb.annotation.ScopeType;
 import org.crumb.definition.BeanDefinition;
@@ -26,6 +27,7 @@ public class CrumbContainer {
     private static final String RESET = "\u001B[0m";
 
     private boolean canOverride = false;
+    private boolean enableProxy = false;
 
     private final BeanScanner scanner = new BeanScanner();
     private final BeanFactory beanFactory = new BeanFactory(this::getBeanInside);
@@ -41,6 +43,7 @@ public class CrumbContainer {
     private final Set<BeanDefinition> remainBeanDefSet = ConcurrentHashMap.newKeySet();
     private final Set<Method> remainBeanMethods = ConcurrentHashMap.newKeySet();
 
+
     private final Map<BeanDefinition, Object> singletonObjects = new ConcurrentHashMap<>();
     private final Map<BeanDefinition, Object> earlySingletonObjects = new ConcurrentHashMap<>();
     private final Map<BeanDefinition, Object> prototypeCache = new ConcurrentHashMap<>();
@@ -49,6 +52,10 @@ public class CrumbContainer {
     public CrumbContainer(Class<?> configClass) {
         propFactory.logBanner();
         this.configClass = configClass;
+        if (configClass.isAnnotationPresent(EnableAspectProxy.class)) {
+            enableProxy = true;
+            log.info(YELLOW + "Enable AspectProxy need VM parameter: --add-opens java.base/java.lang=ALL-UNNAMED" + RESET);
+        }
         initContext();
     }
 

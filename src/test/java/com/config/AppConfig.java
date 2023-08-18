@@ -7,6 +7,7 @@ import java.util.Random;
 
 @ComponentScan("com")
 @Configuration
+@EnableAspectProxy
 public class AppConfig {
 
     @Bean
