@@ -20,10 +20,5 @@ public class AppConfig {
         return new Random().nextInt(30);
     }
 
-    @Bean
-    @Lazy
-    public Foo foo() {
-        return new Foo();
-    }
 
 }

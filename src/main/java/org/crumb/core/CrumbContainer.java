@@ -21,13 +21,17 @@ import java.util.stream.Collectors;
 public class CrumbContainer {
 
     private static final String GREEN = "\u001B[32m";
+    private static final String BLUE = "\u001B[34m";
+    private static final String YELLOW = "\u001B[33m";
     private static final String RESET = "\u001B[0m";
 
     private boolean canOverride = false;
 
-    private BeanScanner scanner;
-    private BeanFactory beanFactory;
+    private final BeanScanner scanner = new BeanScanner();
+    private final BeanFactory beanFactory = new BeanFactory(this::getBeanInside);
     private final PropFactory propFactory = new PropFactory();
+    private final BeanIniter beanIniter = new BeanIniter();
+    private final BeanDestroyer beanDestroyer = new BeanDestroyer();
 
     private final Class<?> configClass;
     private Object configObj;
@@ -49,14 +53,13 @@ public class CrumbContainer {
     }
 
     private void initContext() {
-        initChildrenModules();
         processConfig();
         createComponents();
-        log.info("Successfully started crumbContainer");
+        log.info(GREEN + "Successfully started crumbContainer" + RESET);
     }
 
     private void processConfig() {
-        log.debug(GREEN + "start processing configuration" + RESET);
+        log.debug(BLUE + "start processing configuration" + RESET);
         var scanPaths = scanner.getComponentScanPath(configClass);
         var classFiles = scanPaths.stream()
                 .map(scanner::getComponentFile)
@@ -73,18 +76,12 @@ public class CrumbContainer {
 
         configObj = ReflectUtil.createInstance(configClass);
         injectConfigObj();
-        log.debug(GREEN + "end processing configuration" + RESET);
+        log.debug(BLUE + "end processing configuration" + RESET);
     }
 
-    private void initChildrenModules() {
-        log.debug(GREEN + "start initializing childrenModules" + RESET);
-        scanner = new BeanScanner();
-        beanFactory = new BeanFactory(this::getBeanInside);
-        log.debug(GREEN + "end initializing childrenModules" + RESET);
-    }
 
     private void createComponents() {
-        log.debug(GREEN + "start creating components" + RESET);
+        log.debug(BLUE + "start creating components" + RESET);
         for(var def : remainBeanDefSet) {
             var component = createBean(def);
             log.debug("proactively created the component: {}", component);
@@ -93,7 +90,7 @@ public class CrumbContainer {
             var component = createBean(method);
             log.debug("proactively created the component: {}", component);
         }
-        log.debug(GREEN + "end creating components" + RESET);
+        log.debug(BLUE + "end creating components" + RESET);
     }
 
     private Object getBeanInside(Class<?> clazz) {
@@ -119,6 +116,7 @@ public class CrumbContainer {
             var instance = prototypeCache.getOrDefault(definition, beanFactory.getBean(definition.clazz));
             propFactory.setPropsValue(instance);
             injectBean(instance, definition, true);
+            beanIniter.initBean(instance);
             return instance;
         }
         // definition.scope == ScopeType.SINGLETON
@@ -128,6 +126,7 @@ public class CrumbContainer {
             instance = beanFactory.getBean(definition.clazz);
             propFactory.setPropsValue(instance);
             injectBean(instance, definition, false);
+            beanIniter.initBean(instance);
             registerBean(definition, instance);
         }
 
@@ -221,6 +220,7 @@ public class CrumbContainer {
     }
 
     public void close() {
+        singletonObjects.values().forEach(beanDestroyer::destroyBean);
         singletonObjects.clear();
         beanDefSet.clear();
         remainBeanDefSet.clear();
