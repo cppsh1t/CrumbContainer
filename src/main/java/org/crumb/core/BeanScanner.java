@@ -115,4 +115,12 @@ public class BeanScanner {
         return map;
     }
 
+    public Map<Class<?>, BeanDefinition> getAopBeanDefinition(Set<BeanDefinition> definitions) {
+        var map = new HashMap<Class<?>, BeanDefinition>();
+        definitions.stream().filter(def -> def.clazz.isAnnotationPresent(Aspect.class))
+                .peek(def -> log.debug("get AopBeanDefinition: {}", def))
+                .forEach(def -> map.put(def.clazz.getAnnotation(Aspect.class).value(), def));
+        return map;
+    }
+
 }

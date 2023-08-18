@@ -9,6 +9,7 @@ import org.crumb.annotation.Lazy;
 import org.crumb.annotation.ScopeType;
 import org.crumb.definition.BeanDefinition;
 import org.crumb.exception.BeanNotFoundException;
+import org.crumb.proxy.ProxyFactory;
 import org.crumb.util.ClassConverter;
 import org.crumb.util.ReflectUtil;
 import org.slf4j.LoggerFactory;
@@ -34,6 +35,7 @@ public class CrumbContainer {
     private final PropFactory propFactory = new PropFactory();
     private final BeanIniter beanIniter = new BeanIniter();
     private final BeanDestroyer beanDestroyer = new BeanDestroyer();
+    private final ProxyFactory proxyFactory = new ProxyFactory(this::getBeanInside);
 
     private final Class<?> configClass;
     private Object configObj;
@@ -42,7 +44,7 @@ public class CrumbContainer {
     private final Set<Method> beanMethods = ConcurrentHashMap.newKeySet();
     private final Set<BeanDefinition> remainBeanDefSet = ConcurrentHashMap.newKeySet();
     private final Set<Method> remainBeanMethods = ConcurrentHashMap.newKeySet();
-
+    private final Map<Class<?>, BeanDefinition> aopDefMap = new ConcurrentHashMap<>();
 
     private final Map<BeanDefinition, Object> singletonObjects = new ConcurrentHashMap<>();
     private final Map<BeanDefinition, Object> earlySingletonObjects = new ConcurrentHashMap<>();
@@ -80,6 +82,11 @@ public class CrumbContainer {
         beanMethods.addAll(scanner.getBeanMethod(configClass));
         remainBeanMethods.addAll(beanMethods.stream()
                 .filter(method -> !method.isAnnotationPresent(Lazy.class)).collect(Collectors.toSet()));
+
+        if (enableProxy) {
+            aopDefMap.putAll(scanner.getAopBeanDefinition(beanDefSet));
+        }
+
 
         configObj = ReflectUtil.createInstance(configClass);
         injectConfigObj();
@@ -120,10 +127,11 @@ public class CrumbContainer {
     private Object createBean(BeanDefinition definition) {
         log.debug("want to get Bean: {}", definition);
         if (definition.scope == ScopeType.PROTOTYPE) {
-            var instance = prototypeCache.getOrDefault(definition, beanFactory.getBean(definition.clazz));
-            propFactory.setPropsValue(instance);
-            injectBean(instance, definition, true);
-            beanIniter.initBean(instance);
+            var origin = prototypeCache.getOrDefault(definition, beanFactory.getBean(definition.clazz));
+            propFactory.setPropsValue(origin);
+            var instance = proxyBean(origin);
+            injectBean(origin, definition, true);
+            beanIniter.initBean(origin);
             return instance;
         }
         // definition.scope == ScopeType.SINGLETON
@@ -132,6 +140,7 @@ public class CrumbContainer {
             remainBeanDefSet.remove(definition);
             instance = beanFactory.getBean(definition.clazz);
             propFactory.setPropsValue(instance);
+            instance = proxyBean(instance);
             injectBean(instance, definition, false);
             beanIniter.initBean(instance);
             registerBean(definition, instance);
@@ -182,6 +191,18 @@ public class CrumbContainer {
             targetCache.remove(definition);
             log.debug("remove {} from cache", bean);
         }
+    }
+
+    private Object proxyBean(Object bean) {
+        if (!enableProxy) return bean;
+
+        var clazz = bean.getClass();
+        var def = aopDefMap.get(clazz);
+        if (def == null) return bean;
+
+        var aopObj = createBean(def);
+        log.debug("will proxy bean: {} with {}", bean, aopObj);
+        return proxyFactory.makeProxy(bean, aopObj);
     }
 
     private void injectConfigObj() {

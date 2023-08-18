@@ -9,9 +9,10 @@ import org.crumb.core.CrumbContainer;
 public class MainTest {
 
     public static void main(String[] args) {
-        CrumbContainer.setLoggerLevel(Level.INFO);
+        CrumbContainer.setLoggerLevel(Level.DEBUG);
         var container = new CrumbContainer(AppConfig.class);
-        System.out.println(container.getBean(Foo.class));
+        var catcher = container.getBean(FooCatcher.class);
+        catcher.doFooTest();
         container.close();
     }
 }

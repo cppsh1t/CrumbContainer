@@ -34,4 +34,8 @@ public class Foo implements InitializingBean, DisposableBean {
     public void destroy() {
         System.out.println("DisposableBean");
     }
+
+    public void test() {
+        System.out.println("I am foo");
+    }
 }
