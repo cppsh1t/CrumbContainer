@@ -2,6 +2,7 @@ package com;
 
 import ch.qos.logback.classic.Level;
 import com.config.AppConfig;
+import com.cppsh1t.crumb.proxy.ProxyObject;
 import com.entity.*;
 import com.cppsh1t.crumb.core.CrumbContainer;
 

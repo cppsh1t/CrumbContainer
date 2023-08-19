@@ -32,10 +32,16 @@ public class ProxyFactory {
         var clazz = origin.getClass();
 
         enhancer.setSuperclass(clazz);
+        enhancer.setInterfaces(new Class[]{ProxyObject.class});
         enhancer.setCallback(new MethodInterceptor() {
+
             @Override
             public Object intercept(Object no, Method method, Object[] args, MethodProxy no2) throws Throwable {
                 Object result;
+
+                if (method.getName().equals("getOrigin")) {
+                    return origin;
+                }
 
                 beforeMethods.keySet().stream()
                         .filter(name -> name.equals(method.getName()))

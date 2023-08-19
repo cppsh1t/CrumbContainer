@@ -100,9 +100,7 @@ public class FooAOP {
 2. AfterReturn需要参数类型和返回类型都为Object
 3. Around需要参数类型为JoinPoint，返回类型为Object，JoinPoint里有原函数的相关数据
 
-#### BUG
 
-因为代理通过cglib实现，代理后的类将失去原来的注解，所以PostConstruct和PreDestroy会在有对应AOP的情况下失效
 
 
 
