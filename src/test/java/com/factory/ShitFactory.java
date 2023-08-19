@@ -1,8 +1,8 @@
 package com.factory;
 
 import com.entity.Shit;
-import org.crumb.annotation.Component;
-import org.crumb.core.FactoryBean;
+import com.cppsh1t.crumb.annotation.Component;
+import com.cppsh1t.crumb.core.FactoryBean;
 
 @Component
 public class ShitFactory implements FactoryBean<Shit> {

@@ -1,11 +1,11 @@
 package com.entity;
 
-import org.crumb.annotation.Component;
-import org.crumb.annotation.Lazy;
-import org.crumb.annotation.PostConstruct;
-import org.crumb.annotation.PreDestroy;
-import org.crumb.beanProcess.DisposableBean;
-import org.crumb.beanProcess.InitializingBean;
+import com.cppsh1t.crumb.annotation.Component;
+import com.cppsh1t.crumb.annotation.Lazy;
+import com.cppsh1t.crumb.annotation.PostConstruct;
+import com.cppsh1t.crumb.annotation.PreDestroy;
+import com.cppsh1t.crumb.beanProcess.DisposableBean;
+import com.cppsh1t.crumb.beanProcess.InitializingBean;
 
 @Component
 @Lazy

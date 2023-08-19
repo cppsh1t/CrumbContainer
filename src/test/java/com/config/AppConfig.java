@@ -1,7 +1,6 @@
 package com.config;
 
-import com.entity.Foo;
-import org.crumb.annotation.*;
+import com.cppsh1t.crumb.annotation.*;
 
 import java.util.Random;
 

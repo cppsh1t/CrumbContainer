@@ -1,8 +1,8 @@
 package com.entity;
 
-import org.crumb.annotation.Autowired;
-import org.crumb.annotation.Component;
-import org.crumb.annotation.Lazy;
+import com.cppsh1t.crumb.annotation.Autowired;
+import com.cppsh1t.crumb.annotation.Component;
+import com.cppsh1t.crumb.annotation.Lazy;
 
 @Component
 @Lazy

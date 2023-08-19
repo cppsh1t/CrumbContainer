@@ -1,6 +1,9 @@
 package com.entity;
 
-import org.crumb.annotation.*;
+import com.cppsh1t.crumb.annotation.Autowired;
+import com.cppsh1t.crumb.annotation.Component;
+import com.cppsh1t.crumb.annotation.Scope;
+import com.cppsh1t.crumb.annotation.ScopeType;
 
 @Component
 @Scope(ScopeType.PROTOTYPE)
