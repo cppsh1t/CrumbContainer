@@ -4,7 +4,21 @@
 
 API基本和spring一样，但是只写了按class注入，所以使用起来非常残疾
 
-#### Install
+### Sample
+
+```java
+public class MainTest {
+
+    public static void main(String[] args) {
+        CrumbContainer.setLoggerLevel(Level.DEBUG);
+        var container = new CrumbContainer(AppConfig.class);
+        var foo = container.getBean(Foo.class);
+        foo.test();
+    }
+}
+```
+
+### Install
 
 已经上传到maven中央仓库，复制下面的xml即可导入:
 
@@ -16,11 +30,11 @@ API基本和spring一样，但是只写了按class注入，所以使用起来非
 </dependency>
 ```
 
-#### VM参数
+### VM参数
 
 因为是使用cglib在Java17环境下实现AOP，需要加VM参数: --add-opens java.base/java.lang=ALL-UNNAMED
 
-#### Logger
+### Logger
 
 用logback写了Logger，能看到依赖解决的过程，可以通过添加logback.xml修改，也可以通过下面的方法直接修改输出等级:
 
@@ -28,19 +42,19 @@ API基本和spring一样，但是只写了按class注入，所以使用起来非
 CrumbContainer.setLoggerLevel(Level.DEBUG);
 ```
 
-#### Bean
+### Bean
 
 创建Bean和spring一样，Component标记类或者Bean标记方法，标记Autowired的构造函数优先调用
 
-#### Inject
+### Inject
 
 属性注入和spring不大一样，不需要给setter加Autowired，容器会自动寻找对应名字的setter，找不到再使用字段注入
 
-#### Init
+### Init
 
 Bean生命周期的相关接口写的很少，BeanPostProcessor和Aware根本没写，有InitializingBean和DisposableBean
 
-#### Values
+### Values
 
 可以使用Values注解注入外部值，默认是application.yaml，可以通过下面的方法增加或者修改默认路径，只支持yaml格式:
 
@@ -49,7 +63,7 @@ PropFactory.setDefaultPath("defaultPath");
 PropFactory.addFilePath("newPath");
 ```
 
-#### AOP
+### AOP
 
 AOP和spring的API不大一样，使用AOP之前需要先将配置类加上EnableAspectProxy注解:
 
