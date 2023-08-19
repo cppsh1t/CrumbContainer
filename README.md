@@ -4,6 +4,18 @@
 
 API基本和spring一样，但是只写了按class注入，所以使用起来非常残疾
 
+#### Install
+
+已经上传到maven中央仓库，复制下面的xml即可导入:
+
+```xml
+<dependency>
+    <groupId>io.github.cppsh1t</groupId>
+    <artifactId>crumbContainer</artifactId>
+    <version>0.1.5</version>
+</dependency>
+```
+
 #### VM参数
 
 因为是使用cglib在Java17环境下实现AOP，需要加VM参数: --add-opens java.base/java.lang=ALL-UNNAMED

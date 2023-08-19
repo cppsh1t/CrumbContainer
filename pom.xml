@@ -7,17 +7,88 @@
     <groupId>io.github.cppsh1t</groupId>
     <artifactId>crumbContainer</artifactId>
     <version>0.1.5</version>
+    <name>crumbContainer</name>
+    <description>a simple ioc container</description>
     <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-                    <source>16</source>
-                    <target>16</target>
-                </configuration>
-            </plugin>
-        </plugins>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <configuration>
+                        <source>16</source>
+                        <target>16</target>
+                    </configuration>
+                </plugin>
+
+                <!--打包源码的插件-->
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-source-plugin</artifactId>
+                    <version>2.2.1</version>
+                    <executions>
+                        <execution>
+                            <id>attach-sources</id>
+                            <goals>
+                                <goal>jar-no-fork</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+
+                <!--公钥私钥插件，也就是上传需要进行验证用户名和密码过程中需要用到的插件-->
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-gpg-plugin</artifactId>
+                    <version>1.5</version>
+                    <executions>
+                        <execution>
+                            <id>sign-artifacts</id>
+                            <phase>verify</phase>
+                            <goals>
+                                <goal>sign</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+                <!--部署插件-->
+                <plugin>
+                    <groupId>org.sonatype.plugins</groupId>
+                    <artifactId>nexus-staging-maven-plugin</artifactId>
+                    <version>1.6.12</version>
+                    <extensions>true</extensions>
+                    <configuration>
+                        <serverId>${serverId}</serverId>
+                        <nexusUrl>https://s01.oss.sonatype.org/</nexusUrl>
+                        <autoReleaseAfterClose>true</autoReleaseAfterClose>
+                    </configuration>
+                </plugin>
+
+
+                <!-- Javadoc 文档生成插件-->
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-javadoc-plugin</artifactId>
+                    <version>2.9.1</version>
+                    <configuration>
+                        <!-- 忽略生成文档中的错误 -->
+                        <additionalparam>-Xdoclint:none</additionalparam>
+                        <aggregate>true</aggregate>
+                        <charset>UTF-8</charset><!-- utf-8读取文件 -->
+                        <encoding>UTF-8</encoding><!-- utf-8进行编码代码 -->
+                        <docencoding>UTF-8</docencoding><!-- utf-8进行编码文档 -->
+                    </configuration>
+                    <executions>
+                        <execution>
+                            <id>attach-javadocs</id>
+                            <goals>
+                                <goal>jar</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+
+            </plugins>
+
     </build>
 
     <dependencies>
@@ -49,6 +120,49 @@
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
+        <java.version>17</java.version>
+        <projectUrl>https://github.com/cppsh1t/CrumbContainer.git</projectUrl>
+        <serverId>ossrh</serverId>
     </properties>
+
+    <developers>
+        <developer>
+            <name>cppsh1t</name>
+            <email>1730648559@qq.com</email>
+            <url>${projectUrl}</url>
+        </developer>
+    </developers>
+
+    <url>${projectUrl}</url>
+    <licenses>
+        <license>
+            <name>MIT</name>
+            <url>https://opensource.org/license/mit/</url>
+            <distribution>repo,manual</distribution>
+        </license>
+    </licenses>
+    <scm>
+        <!-- 采用projectUrl变量代替这个值，方便给重复利用这个配置，也就是上面的标签替换一下值就行 -->
+        <connection>${projectUrl}</connection>
+        <developerConnection>${projectUrl}</developerConnection>
+        <url>${projectUrl}</url>
+    </scm>
+    <distributionManagement>
+        <snapshotRepository>
+            <!--这个id和settings.xml中servers.server.id要相同，因为上传jar需要登录才有权限-->
+            <id>${serverId}</id>
+            <name>OSS Snapshots Repository</name>
+            <url>https://s01.oss.sonatype.org/content/repositories/snapshots/</url>
+        </snapshotRepository>
+        <repository>
+            <!--这个id和settings.xml中servers.server.id要相同，因为上传jar需要登录才有权限-->
+            <id>${serverId}</id>
+            <name>OSS Staging Repository</name>
+            <url>https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+        </repository>
+    </distributionManagement>
+
+
+
 
 </project>
