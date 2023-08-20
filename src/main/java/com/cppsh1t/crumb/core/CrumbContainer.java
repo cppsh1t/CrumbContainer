@@ -19,20 +19,17 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
-@Slf4j
-public class CrumbContainer {
+import static com.cppsh1t.crumb.misc.Color.*;
 
-    private static final String GREEN = "\u001B[32m";
-    private static final String BLUE = "\u001B[34m";
-    private static final String YELLOW = "\u001B[33m";
-    private static final String RESET = "\u001B[0m";
+@Slf4j
+public class CrumbContainer implements BeanFactory {
 
     private boolean canOverride = false;
     private boolean enableProxy = false;
 
     private final BeanScanner scanner = new BeanScanner();
-    private final BeanFactory beanFactory = new BeanFactory(this::getBeanInside);
-    private final PropFactory propFactory = new PropFactory();
+    private final ObjectFactory objectFactory = new ObjectFactory(this::getBeanInside);
+    private final ValuesFactory valuesFactory = new ValuesFactory();
     private final BeanIniter beanIniter = new BeanIniter();
     private final BeanDestroyer beanDestroyer = new BeanDestroyer();
     private final ProxyFactory proxyFactory = new ProxyFactory(this::getBeanInside);
@@ -52,7 +49,7 @@ public class CrumbContainer {
     private final Map<Class<?>, BeanDefinition> factoryBeanMap = new ConcurrentHashMap<>();
 
     public CrumbContainer(Class<?> configClass) {
-        propFactory.logBanner();
+        valuesFactory.logBanner();
         this.configClass = configClass;
         if (configClass.isAnnotationPresent(EnableAspectProxy.class)) {
             enableProxy = true;
@@ -127,10 +124,10 @@ public class CrumbContainer {
     private Object createBean(BeanDefinition definition) {
         log.debug("want to get Bean: {}", definition);
         if (definition.scope == ScopeType.PROTOTYPE) {
-            var origin = prototypeCache.getOrDefault(definition, beanFactory.getBean(definition.clazz));
-            propFactory.setPropsValue(origin);
+            var origin = prototypeCache.getOrDefault(definition, objectFactory.getBean(definition.clazz));
+            valuesFactory.setPropsValue(origin);
             var instance = proxyBean(origin);
-            injectBean(origin, definition, true);
+            injectBean(origin, definition);
             beanIniter.initBean(origin);
             return instance;
         }
@@ -138,10 +135,10 @@ public class CrumbContainer {
         var instance = singletonObjects.getOrDefault(definition, earlySingletonObjects.getOrDefault(definition, null));
         if (instance == null) {
             remainBeanDefSet.remove(definition);
-            instance = beanFactory.getBean(definition.clazz);
-            propFactory.setPropsValue(instance);
+            instance = objectFactory.getBean(definition.clazz);
+            valuesFactory.setPropsValue(instance);
             instance = proxyBean(instance);
-            injectBean(instance, definition, false);
+            injectBean(instance, definition);
             beanIniter.initBean(instance);
             registerBean(definition, instance);
         }
@@ -158,7 +155,7 @@ public class CrumbContainer {
 
     private Object createBean(Method method) {
         log.debug("want to get Bean which use method: {}", method);
-        var instance = beanFactory.getBean(method, configObj);
+        var instance = objectFactory.getBean(method, configObj);
         remainBeanMethods.remove(method);
         registerBean(new BeanDefinition(instance.getClass(), ScopeType.SINGLETON), instance);
         return instance;
@@ -179,15 +176,16 @@ public class CrumbContainer {
         return bean;
     }
 
-    private void injectBean(Object bean, BeanDefinition definition, boolean isPrototype) {
+    private void injectBean(Object bean, BeanDefinition definition) {
         if (!ReflectUtil.hasAnnotationOnField(definition.clazz, Autowired.class)) return;
         log.debug("want to inject Bean: {}, which definition: {}", bean, definition);
+        boolean isPrototype = definition.scope == ScopeType.PROTOTYPE;
         var targetCache = isPrototype ? prototypeCache : earlySingletonObjects;
 
         if (!targetCache.containsKey(definition)) {
             log.debug("put {} into cache", bean);
             targetCache.put(definition, bean);
-            beanFactory.injectBean(bean);
+            objectFactory.injectBean(bean);
             targetCache.remove(definition);
             log.debug("remove {} from cache", bean);
         }
@@ -206,8 +204,8 @@ public class CrumbContainer {
     }
 
     private void injectConfigObj() {
-        propFactory.setPropsValue(configObj);
-        beanFactory.injectBean(configObj);
+        valuesFactory.setPropsValue(configObj);
+        objectFactory.injectBean(configObj);
     }
 
     public <T> T getBean(Class<T> clazz) {

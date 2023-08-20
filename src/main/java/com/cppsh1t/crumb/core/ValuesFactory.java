@@ -16,7 +16,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 @Slf4j
-public class PropFactory {
+public class ValuesFactory {
 
     private static final Set<String> filePaths = new HashSet<>();
     private final Yaml parser = new Yaml();
@@ -28,7 +28,7 @@ public class PropFactory {
         defaultPath = path;
     }
 
-    public PropFactory() {
+    public ValuesFactory() {
         filePaths.add(defaultPath);
         filePaths.forEach(this::parseYaml);
     }
