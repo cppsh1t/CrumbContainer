@@ -114,6 +114,19 @@ public class BeanScanner {
         return map;
     }
 
+    public Map<Class<?>, Method> getFactoryBeanMethods(Set<Method> methods) {
+        var map = new HashMap<Class<?>, Method>();
+        methods.forEach(method -> {
+            var clazz = method.getReturnType();
+            if (FactoryBean.class.isAssignableFrom(clazz)) {
+                var beanClass = ReflectUtil.getFirstParamFromGenericInterface(clazz, FactoryBean.class);
+                log.debug("get factoryBean which getObjectType: {}", beanClass.getName());
+                map.put(beanClass, method);
+            }
+        });
+        return map;
+    }
+
     public Map<Class<?>, BeanDefinition> getAopBeanDefinition(Set<BeanDefinition> definitions) {
         var map = new HashMap<Class<?>, BeanDefinition>();
         definitions.stream().filter(def -> def.clazz.isAnnotationPresent(Aspect.class))

@@ -41,6 +41,12 @@ public class ObjectFactory implements BeanFactory {
             var instance = ReflectUtil.invokeMethod(method, invoker);
             log.debug("make the instance: {}, which use method: {}", instance, method);
             return instance;
+        } else if (method.getParameterCount() == 1) {
+            var param = Arrays.stream(method.getParameterTypes())
+                    .map(objectGetter::getObject).findFirst().orElse(null);
+            var instance = ReflectUtil.invokeMethod(method, invoker, param);
+            log.debug("make the instance: {}, which use method: {}, params: {}", instance, method, param);
+            return instance;
         } else {
             var params = Arrays.stream(method.getParameterTypes())
                     .map(objectGetter::getObject)

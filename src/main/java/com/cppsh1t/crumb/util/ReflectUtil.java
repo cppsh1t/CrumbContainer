@@ -39,10 +39,10 @@ public class ReflectUtil {
     public static Object invokeMethod(Method method, Object invoker, Object... args) {
         try {
             return method.invoke(invoker, args);
-        } catch (IllegalAccessException | InvocationTargetException e) {
-            e.printStackTrace();
+        } catch (Exception e) {
+            throw  new MethodInvocationException(method);
         }
-        throw new MethodInvocationException(method);
+
     }
 
     public static Constructor<?> getConstructorWithAnnotation(Class<?> clazz, Class<? extends Annotation> annoClass) {

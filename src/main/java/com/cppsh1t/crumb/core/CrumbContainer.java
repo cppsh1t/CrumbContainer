@@ -13,6 +13,8 @@ import com.cppsh1t.crumb.annotation.Autowired;
 import com.cppsh1t.crumb.annotation.EnableAspectProxy;
 import com.cppsh1t.crumb.annotation.Lazy;
 import com.cppsh1t.crumb.definition.ScopeType;
+import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.session.SqlSessionFactory;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Method;
@@ -47,7 +49,9 @@ public class CrumbContainer implements BeanFactory {
     private final Map<BeanDefinition, Object> singletonObjects = new ConcurrentHashMap<>();
     private final Map<BeanDefinition, Object> earlySingletonObjects = new ConcurrentHashMap<>();
     private final Map<BeanDefinition, Object> prototypeCache = new ConcurrentHashMap<>();
+
     private final Map<Class<?>, BeanDefinition> factoryBeanMap = new ConcurrentHashMap<>();
+    private final Map<Class<?>, Method> factoryMethodBeanMap = new ConcurrentHashMap<>();
 
     public CrumbContainer(Class<?> configClass) {
         valuesFactory.logBanner();
@@ -78,6 +82,7 @@ public class CrumbContainer implements BeanFactory {
                 && !def.clazz.isAnnotationPresent(Lazy.class)).collect(Collectors.toSet()));
 
         beanMethods.addAll(scanner.getBeanMethod(configClass));
+        factoryMethodBeanMap.putAll(scanner.getFactoryBeanMethods(beanMethods));
         remainBeanMethods.addAll(beanMethods.stream()
                 .filter(method -> !method.isAnnotationPresent(Lazy.class)).collect(Collectors.toSet()));
 
@@ -106,6 +111,10 @@ public class CrumbContainer implements BeanFactory {
     }
 
     private Object getBeanInside(Class<?> clazz) {
+        if (clazz.isAnnotationPresent(Mapper.class)) {
+            return getMapper(clazz);
+        }
+
         var finalClazz = ClassConverter.convertPrimitiveType(clazz);
         log.debug("want to find Bean which class: {}", finalClazz.getName());
         var definition = getBeanDefinition(finalClazz);
@@ -167,8 +176,15 @@ public class CrumbContainer implements BeanFactory {
     private Object createBeanFromFactoryBean(Class<?> clazz) {
         log.debug("want to get Bean from FactoryBean, which class: {}", clazz);
         var def = factoryBeanMap.get(clazz);
-        if (def == null) return null;
-        var factoryBean = (FactoryBean<?>) createBean(def);
+        FactoryBean<?> factoryBean;
+        if (def != null) {
+            factoryBean = (FactoryBean<?>) createBean(def);
+        } else {
+            var factoryBeanMethod = factoryMethodBeanMap.get(clazz);
+            if (factoryBeanMethod == null) return null;
+            factoryBean = (FactoryBean<?>) createBean(factoryBeanMethod);
+        }
+
         boolean isSingleton = factoryBean.isSingleton();
         var bean = factoryBean.getObject();
         if (isSingleton) {
@@ -204,6 +220,12 @@ public class CrumbContainer implements BeanFactory {
         var aopObj = createBean(def);
         log.debug("will proxy bean: {} with {}", bean, aopObj);
         return proxyFactory.makeProxy(bean, aopObj);
+    }
+
+    private Object getMapper(Class<?> clazz) {
+        var mapper = getBean(SqlSessionFactory.class).openSession().getMapper(clazz);
+        registerBean(new BeanDefinition(clazz, mapper.getClass(), ScopeType.SINGLETON), mapper);
+        return mapper;
     }
 
     private void injectConfigObj() {
