@@ -3,6 +3,8 @@ package com.cppsh1t.crumb.core;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import com.cppsh1t.crumb.builder.BeanDefinitionBuilder;
+import com.cppsh1t.crumb.data.MapperScanner;
+import com.cppsh1t.crumb.data.SqlSessionFactoryBean;
 import com.cppsh1t.crumb.definition.BeanDefinition;
 import com.cppsh1t.crumb.exception.BeanNotFoundException;
 import com.cppsh1t.crumb.proxy.ProxyFactory;
@@ -27,8 +29,11 @@ import static com.cppsh1t.crumb.misc.Color.*;
 @Slf4j
 public class CrumbContainer implements BeanFactory {
 
+    private final List<String> mapperPaths = new ArrayList<>();
+
     private boolean canOverride = false;
     private boolean enableProxy = false;
+    private boolean hasAddMappers = false;
 
     private final BeanScanner scanner = new BeanScanner();
     private final ObjectFactory objectFactory = new ObjectFactory(this::getBeanInside);
@@ -71,6 +76,7 @@ public class CrumbContainer implements BeanFactory {
 
     private void processConfig() {
         log.debug(BLUE + "start processing configuration" + RESET);
+        mapperPaths.addAll(MapperScanner.getMapperPaths(configClass));
         var scanPaths = scanner.getComponentScanPath(configClass);
         var classFiles = scanPaths.stream()
                 .map(scanner::getComponentFile)
@@ -223,7 +229,11 @@ public class CrumbContainer implements BeanFactory {
     }
 
     private Object getMapper(Class<?> clazz) {
-        var mapper = getBean(SqlSessionFactory.class).openSession().getMapper(clazz);
+        var sqlSessionFactory = getBean(SqlSessionFactory.class);
+        if (!hasAddMappers) {
+            mapperPaths.forEach(sqlSessionFactory.getConfiguration()::addMappers);
+        }
+        var mapper = sqlSessionFactory.openSession(true).getMapper(clazz);
         registerBean(new BeanDefinition(clazz, mapper.getClass(), ScopeType.SINGLETON), mapper);
         return mapper;
     }

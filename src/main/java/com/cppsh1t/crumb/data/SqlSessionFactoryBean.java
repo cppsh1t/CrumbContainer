@@ -20,17 +20,11 @@ public class SqlSessionFactoryBean implements FactoryBean<SqlSessionFactory> {
 
     private Configuration configuration;
 
-    private String scanPath;
-
-    public void setScanPath(String scanPath) {
-        this.scanPath = scanPath;
-    }
 
     public void setDataSource(DataSource dataSource) {
         this.dataSource = dataSource;
         environment = new Environment("development", transactionFactory, dataSource);
         configuration = new org.apache.ibatis.session.Configuration(environment);
-        configuration.addMappers(scanPath);
     }
 
 

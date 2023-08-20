@@ -1,6 +1,7 @@
 package com.config;
 
 import com.cppsh1t.crumb.annotation.*;
+import com.cppsh1t.crumb.data.MapperScan;
 import com.cppsh1t.crumb.data.SqlSessionFactoryBean;
 import com.zaxxer.hikari.HikariDataSource;
 
@@ -10,6 +11,7 @@ import java.util.Random;
 @ComponentScan("com")
 @Configuration
 @EnableAspectProxy
+@MapperScan("com.mapper")
 public class AppConfig {
 
     @Bean
@@ -36,7 +38,6 @@ public class AppConfig {
     @Bean
     public SqlSessionFactoryBean sqlSessionFactoryBean(DataSource dataSource){
         SqlSessionFactoryBean bean = new SqlSessionFactoryBean();
-        bean.setScanPath("com.mapper");
         bean.setDataSource(dataSource);
         return bean;
     }

@@ -3,6 +3,7 @@ package com.cppsh1t.crumb.util;
 import com.cppsh1t.crumb.exception.DefaultConstructorException;
 import com.cppsh1t.crumb.exception.CreateInstanceException;
 import com.cppsh1t.crumb.exception.MethodInvocationException;
+import com.cppsh1t.crumb.exception.MethodRuleException;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
@@ -15,6 +16,7 @@ public class ReflectUtil {
 
     /**
      * 调用类的无参构造函数创建实例
+     *
      * @param clazz 要创建的实例的类
      * @return 创建的实例
      */
@@ -33,16 +35,16 @@ public class ReflectUtil {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        throw new CreateInstanceException(constructor,args);
+        throw new CreateInstanceException(constructor, args);
     }
 
     public static Object invokeMethod(Method method, Object invoker, Object... args) {
         try {
             return method.invoke(invoker, args);
-        } catch (Exception e) {
-            throw  new MethodInvocationException(method);
+        } catch (IllegalAccessException | InvocationTargetException e) {
+            e.printStackTrace();
+            throw new MethodInvocationException(method);
         }
-
     }
 
     public static Constructor<?> getConstructorWithAnnotation(Class<?> clazz, Class<? extends Annotation> annoClass) {
