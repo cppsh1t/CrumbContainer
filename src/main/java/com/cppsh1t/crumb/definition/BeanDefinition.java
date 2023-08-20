@@ -2,16 +2,18 @@ package com.cppsh1t.crumb.definition;
 
 public class BeanDefinition {
 
+    public final Class<?> keyType;
     public final Class<?> clazz;
     public final ScopeType scope;
 
-    public BeanDefinition(Class<?> clazz, ScopeType scope) {
+    public BeanDefinition(Class<?> keyType, Class<?> clazz, ScopeType scope) {
+        this.keyType = keyType;
         this.clazz = clazz;
         this.scope = scope;
     }
 
     @Override
     public String toString() {
-        return "{ class: " + clazz.getName() + ", scope: " + scope + " }";
+        return "{ keyType: " + keyType.getName() + ",class: " + clazz.getName() + ", scope: " + scope + " }";
     }
 }

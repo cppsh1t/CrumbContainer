@@ -7,9 +7,9 @@ import com.cppsh1t.crumb.annotation.PreDestroy;
 import com.cppsh1t.crumb.beanProcess.DisposableBean;
 import com.cppsh1t.crumb.beanProcess.InitializingBean;
 
-@Component
+@Component(IFoo.class)
 @Lazy
-public class Foo implements InitializingBean, DisposableBean {
+public class Foo implements InitializingBean, DisposableBean, IFoo {
 
     public Foo() {
         System.out.println("foo!");

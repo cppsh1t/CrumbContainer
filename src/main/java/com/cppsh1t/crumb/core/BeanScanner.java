@@ -3,6 +3,7 @@ package com.cppsh1t.crumb.core;
 
 
 import com.cppsh1t.crumb.annotation.*;
+import com.cppsh1t.crumb.builder.BeanDefinitionBuilder;
 import com.cppsh1t.crumb.definition.BeanDefinition;
 import com.cppsh1t.crumb.definition.ScopeType;
 import com.cppsh1t.crumb.util.FileUtil;
@@ -81,10 +82,7 @@ public class BeanScanner {
                 Class<?> clazz = classLoader.loadClass(className);
                 if (!clazz.isAnnotationPresent(Component.class)) return;
 
-                ScopeType scope = clazz.isAnnotationPresent(Scope.class) ? clazz.getDeclaredAnnotation(Scope.class).value()
-                        : ScopeType.SINGLETON;
-
-                var definition = new BeanDefinition(clazz, scope);
+                var definition = BeanDefinitionBuilder.getComponentDef(clazz);
                 definitions.add(definition);
                 log.debug("get beanDefinition: {}", definition);
             } catch (ClassNotFoundException e) {

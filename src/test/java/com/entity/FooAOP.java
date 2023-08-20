@@ -4,7 +4,7 @@ import com.cppsh1t.crumb.annotation.*;
 import com.cppsh1t.crumb.proxy.JoinPoint;
 
 @Component
-@Aspect(Foo.class)
+@Aspect(IFoo.class)
 public class FooAOP {
 
     @Before("test")

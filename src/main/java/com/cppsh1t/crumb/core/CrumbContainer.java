@@ -2,6 +2,7 @@ package com.cppsh1t.crumb.core;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
+import com.cppsh1t.crumb.builder.BeanDefinitionBuilder;
 import com.cppsh1t.crumb.definition.BeanDefinition;
 import com.cppsh1t.crumb.exception.BeanNotFoundException;
 import com.cppsh1t.crumb.proxy.ProxyFactory;
@@ -126,7 +127,7 @@ public class CrumbContainer implements BeanFactory {
         if (definition.scope == ScopeType.PROTOTYPE) {
             var origin = prototypeCache.getOrDefault(definition, objectFactory.getBean(definition.clazz));
             valuesFactory.setPropsValue(origin);
-            var instance = proxyBean(origin);
+            var instance = proxyBean(origin, definition);
             injectBean(origin, definition);
             beanIniter.initBean(origin);
             return instance;
@@ -137,7 +138,7 @@ public class CrumbContainer implements BeanFactory {
             remainBeanDefSet.remove(definition);
             instance = objectFactory.getBean(definition.clazz);
             valuesFactory.setPropsValue(instance);
-            instance = proxyBean(instance);
+            instance = proxyBean(instance, definition);
             injectBean(instance, definition);
             beanIniter.initBean(instance);
             registerBean(definition, instance);
@@ -153,11 +154,13 @@ public class CrumbContainer implements BeanFactory {
         return createBean(method);
     }
 
+
     private Object createBean(Method method) {
         log.debug("want to get Bean which use method: {}", method);
         var instance = objectFactory.getBean(method, configObj);
         remainBeanMethods.remove(method);
-        registerBean(new BeanDefinition(instance.getClass(), ScopeType.SINGLETON), instance);
+        var def = BeanDefinitionBuilder.getMethodBeanDef(method);
+        registerBean(def, instance);
         return instance;
     }
 
@@ -170,7 +173,7 @@ public class CrumbContainer implements BeanFactory {
         var bean = factoryBean.getObject();
         if (isSingleton) {
             factoryBeanMap.remove(clazz);
-            var beanDef = new BeanDefinition(clazz, ScopeType.SINGLETON);
+            var beanDef = new BeanDefinition(clazz, bean.getClass(), ScopeType.SINGLETON);
             registerBean(beanDef, bean);
         }
         return bean;
@@ -191,11 +194,11 @@ public class CrumbContainer implements BeanFactory {
         }
     }
 
-    private Object proxyBean(Object bean) {
+    private Object proxyBean(Object bean, BeanDefinition definition) {
         if (!enableProxy) return bean;
 
-        var clazz = bean.getClass();
-        var def = aopDefMap.get(clazz);
+        var keyType = definition.keyType;
+        var def = aopDefMap.get(keyType);
         if (def == null) return bean;
 
         var aopObj = createBean(def);
@@ -222,12 +225,12 @@ public class CrumbContainer implements BeanFactory {
     }
 
     public BeanDefinition getBeanDefinition(Class<?> clazz) {
-        return beanDefSet.stream().filter(def -> def.clazz == clazz).findFirst().orElse(null);
+        return beanDefSet.stream().filter(def -> def.keyType == clazz).findFirst().orElse(null);
     }
 
     private Method getBeanMethod(Class<?> returnType) {
         return beanMethods.stream()
-                .filter(method -> ClassConverter.convertPrimitiveType(method.getReturnType()) == returnType)
+                .filter(method -> BeanDefinitionBuilder.getKeyType(method) == returnType)
                 .findFirst()
                 .orElse(null);
     }

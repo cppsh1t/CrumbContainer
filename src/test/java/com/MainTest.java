@@ -10,9 +10,9 @@ import com.cppsh1t.crumb.core.CrumbContainer;
 public class MainTest {
 
     public static void main(String[] args) {
-        CrumbContainer.setLoggerLevel(Level.DEBUG);
+//        CrumbContainer.setLoggerLevel(Level.DEBUG);
         var container = new CrumbContainer(AppConfig.class);
-        var foo = container.getBean(Foo.class);
+        var foo = container.getBean(IFoo.class);
         foo.test();
     }
 }
