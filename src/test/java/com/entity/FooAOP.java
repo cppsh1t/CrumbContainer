@@ -1,7 +1,7 @@
 package com.entity;
 
-import com.cppsh1t.crumb.annotation.*;
-import com.cppsh1t.crumb.proxy.JoinPoint;
+import com.crumb.annotation.*;
+import com.crumb.proxy.JoinPoint;
 
 @Component
 @Aspect(IFoo.class)

@@ -1,8 +1,8 @@
 package com.config;
 
-import com.cppsh1t.crumb.annotation.*;
-import com.cppsh1t.crumb.data.MapperScan;
-import com.cppsh1t.crumb.data.SqlSessionFactoryBean;
+import com.crumb.annotation.*;
+import com.crumb.data.MapperScan;
+import com.crumb.data.SqlSessionFactoryBean;
 import com.zaxxer.hikari.HikariDataSource;
 
 import javax.sql.DataSource;

@@ -26,7 +26,7 @@ public class MainTest {
 <dependency>
     <groupId>io.github.cppsh1t</groupId>
     <artifactId>crumbContainer</artifactId>
-    <version>0.1.5</version>
+    <version>0.1.7</version>
 </dependency>
 ```
 
@@ -44,7 +44,16 @@ CrumbContainer.setLoggerLevel(Level.DEBUG);
 
 ### Bean
 
-创建Bean和spring一样，Component标记类或者Bean标记方法，标记Autowired的构造函数优先调用
+Component标记类或者Bean标记方法，标记Autowired的构造函数优先调用
+如果想注册为其superClass，可以手动在Bean或Component的参数里指定:
+
+```java
+@Component(IFoo.class)
+@Lazy
+public class Foo implements IFoo {
+
+}
+```
 
 ### Inject
 
@@ -114,8 +123,49 @@ public class FooAOP {
 2. AfterReturn需要参数类型和返回类型都为Object
 3. Around需要参数类型为JoinPoint，返回类型为Object，JoinPoint里有原函数的相关数据
 
+### DataBase
 
+整合了一点mybatis，写的很简单，只能进行一点简单的操作:
 
+configClass:
+```java
+@ComponentScan("com")
+@Configuration
+@EnableAspectProxy
+@MapperScan("com.mapper")
+public class AppConfig {
+
+    @Bean
+    public DataSource dataSource() {
+        HikariDataSource dataSource = new HikariDataSource();
+        dataSource.setJdbcUrl("jdbc:mysql://localhost:3306/test");
+        dataSource.setDriverClassName("com.mysql.cj.jdbc.Driver");
+        dataSource.setUsername("username");
+        dataSource.setPassword("password");
+        return dataSource;
+    }
+
+    @Bean
+    public SqlSessionFactoryBean sqlSessionFactoryBean(DataSource dataSource){
+        SqlSessionFactoryBean bean = new SqlSessionFactoryBean();
+        bean.setDataSource(dataSource);
+        return bean;
+    }
+}
+```
+
+getMapper:
+```java
+public class MainTest {
+
+    public static void main(String[] args) {
+        CrumbContainer.setLoggerLevel(Level.DEBUG);
+        var container = new CrumbContainer(AppConfig.class);
+        var mapper = container.getBean(TestMapper.class);
+        mapper.selectStudents().forEach(System.out::println);
+    }
+}
+```
 
 
 

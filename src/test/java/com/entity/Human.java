@@ -1,7 +1,7 @@
 package com.entity;
 
-import com.cppsh1t.crumb.annotation.Autowired;
-import com.cppsh1t.crumb.annotation.Component;
+import com.crumb.annotation.Autowired;
+import com.crumb.annotation.Component;
 
 @Component
 public class Human {
