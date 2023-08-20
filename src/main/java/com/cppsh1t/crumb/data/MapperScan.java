@@ -1,4 +1,4 @@
-package com.cppsh1t.crumb.annotation;
+package com.cppsh1t.crumb.data;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -6,7 +6,8 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.FIELD)
-public @interface Values {
+@Target(ElementType.TYPE)
+public @interface MapperScan {
+
     String value();
 }

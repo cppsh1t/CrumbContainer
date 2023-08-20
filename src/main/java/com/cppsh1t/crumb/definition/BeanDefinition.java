@@ -1,7 +1,5 @@
 package com.cppsh1t.crumb.definition;
 
-import com.cppsh1t.crumb.annotation.ScopeType;
-
 public class BeanDefinition {
 
     public final Class<?> clazz;

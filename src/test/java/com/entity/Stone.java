@@ -3,7 +3,7 @@ package com.entity;
 import com.cppsh1t.crumb.annotation.Autowired;
 import com.cppsh1t.crumb.annotation.Component;
 import com.cppsh1t.crumb.annotation.Scope;
-import com.cppsh1t.crumb.annotation.ScopeType;
+import com.cppsh1t.crumb.definition.ScopeType;
 
 @Component
 @Scope(ScopeType.PROTOTYPE)

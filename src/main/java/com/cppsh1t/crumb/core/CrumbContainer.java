@@ -11,7 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import com.cppsh1t.crumb.annotation.Autowired;
 import com.cppsh1t.crumb.annotation.EnableAspectProxy;
 import com.cppsh1t.crumb.annotation.Lazy;
-import com.cppsh1t.crumb.annotation.ScopeType;
+import com.cppsh1t.crumb.definition.ScopeType;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Method;
@@ -243,7 +243,7 @@ public class CrumbContainer {
     }
 
     public static void setLoggerLevel(Level level) {
-        Logger logger = (Logger) LoggerFactory.getLogger("org.crumb.core");
+        Logger logger = (Logger) LoggerFactory.getLogger("com.cppsh1t.crumb");
         logger.setLevel(level);
     }
 

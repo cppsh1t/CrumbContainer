@@ -4,7 +4,7 @@ import com.cppsh1t.crumb.exception.ValueNotFoundException;
 import com.cppsh1t.crumb.util.ReflectUtil;
 import com.cppsh1t.crumb.util.StringUtil;
 import lombok.extern.slf4j.Slf4j;
-import com.cppsh1t.crumb.annotation.Values;
+import com.cppsh1t.crumb.annotation.Value;
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.BufferedReader;
@@ -62,14 +62,14 @@ public class PropFactory {
     }
 
     public void setPropsValue(Object bean) {
-        var fields = ReflectUtil.getFieldsWithAnnotation(bean.getClass(), Values.class);
+        var fields = ReflectUtil.getFieldsWithAnnotation(bean.getClass(), Value.class);
         fields.forEach(field -> setPropValue(field, bean));
     }
 
     private void setPropValue(Field field, Object target) {
-        if (!field.isAnnotationPresent(Values.class)) return;
+        if (!field.isAnnotationPresent(Value.class)) return;
 
-        String name = field.getDeclaredAnnotation(Values.class).value();
+        String name = field.getDeclaredAnnotation(Value.class).value();
         Object value = getPropValue(name);
         ReflectUtil.setFieldValue(field, target, value);
         log.debug("set value: {} on field: {} from Prop", value, field);

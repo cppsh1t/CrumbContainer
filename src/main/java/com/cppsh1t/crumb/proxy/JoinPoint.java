@@ -1,5 +1,7 @@
 package com.cppsh1t.crumb.proxy;
 
+import com.cppsh1t.crumb.exception.MethodRuleException;
+
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
@@ -27,7 +29,17 @@ public class JoinPoint {
         try {
             return method.invoke(target, args);
         } catch (IllegalAccessException | InvocationTargetException e) {
-            throw new RuntimeException("方法格式不正确");
+            e.printStackTrace();
+            throw new MethodRuleException("can't invoke the method");
+        }
+    }
+
+    public Object proceed() {
+        try {
+            return method.invoke(target, args);
+        } catch (IllegalAccessException | InvocationTargetException e) {
+            e.printStackTrace();
+            throw new MethodRuleException("can't invoke the method");
         }
     }
 

@@ -4,6 +4,7 @@ package com.cppsh1t.crumb.core;
 
 import com.cppsh1t.crumb.annotation.*;
 import com.cppsh1t.crumb.definition.BeanDefinition;
+import com.cppsh1t.crumb.definition.ScopeType;
 import com.cppsh1t.crumb.util.FileUtil;
 import com.cppsh1t.crumb.util.ReflectUtil;
 import com.cppsh1t.crumb.util.StringUtil;
