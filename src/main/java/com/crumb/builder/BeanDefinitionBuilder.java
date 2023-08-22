@@ -6,15 +6,25 @@ import com.crumb.annotation.Scope;
 import com.crumb.definition.BeanDefinition;
 import com.crumb.definition.Empty;
 import com.crumb.definition.ScopeType;
+import com.crumb.exception.BeanDefinitionParseException;
 import com.crumb.util.ClassConverter;
+import com.crumb.util.StringUtil;
+import com.crumb.web.Controller;
 
 import java.lang.reflect.Method;
 
 public class BeanDefinitionBuilder {
 
     public static Class<?> getKeyType(Class<?> clazz) {
-        var anno = clazz.getAnnotation(Component.class);
-        Class<?> keyType = anno.value();
+        Class<?> keyType;
+        if (clazz.isAnnotationPresent(Component.class)) {
+            keyType = clazz.getAnnotation(Component.class).value();
+        } else if (clazz.isAnnotationPresent(Controller.class)) {
+            keyType = clazz.getAnnotation(Controller.class).value();
+        } else {
+            throw new BeanDefinitionParseException();
+        }
+
         if (keyType == Empty.class) {
             keyType = clazz;
         }
@@ -40,16 +50,43 @@ public class BeanDefinitionBuilder {
         }
     }
 
+    public static String getName(Class<?> clazz) {
+        String name;
+        if (clazz.isAnnotationPresent(Component.class)) {
+            name = clazz.getAnnotation(Component.class).name();
+        } else if (clazz.isAnnotationPresent(Controller.class)) {
+            name = clazz.getAnnotation(Controller.class).name();
+        } else {
+            throw new BeanDefinitionParseException();
+        }
+
+        if (name.isEmpty()) {
+            name = StringUtil.lowerFirst(clazz.getSimpleName());
+        }
+        return name;
+    }
+
+    public static String getName(Method method) {
+        String name = method.getDeclaredAnnotation(Bean.class).name();
+
+        if (name.isEmpty()) {
+            name = StringUtil.lowerFirst(method.getName());
+        }
+        return name;
+    }
+
     public static BeanDefinition getComponentDef(Class<?> clazz) {
         var keyType = getKeyType(clazz);
         var scope = getScope(clazz);
-        return new BeanDefinition(keyType, clazz, scope);
+        var name = getName(clazz);
+        return new BeanDefinition(keyType, clazz, name, scope);
     }
 
     public static BeanDefinition getMethodBeanDef(Method method) {
         var keyType = getKeyType(method);
         var clazz = method.getReturnType();
         var scope = ScopeType.SINGLETON;
-        return new BeanDefinition(keyType, clazz, scope);
+        var name = getName(method);
+        return new BeanDefinition(keyType, clazz, name, scope);
     }
 }

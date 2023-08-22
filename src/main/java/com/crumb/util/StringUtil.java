@@ -4,7 +4,7 @@ import java.util.Arrays;
 
 public class StringUtil {
 
-    public static String toLowerFirstChar(String str) {
+    public static String lowerFirst(String str) {
         if (str == null || str.isEmpty()) {
             return str;
         }

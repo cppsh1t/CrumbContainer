@@ -1,4 +1,4 @@
-package com.crumb.annotation;
+package com.crumb.web;
 
 import com.crumb.definition.Empty;
 
@@ -9,7 +9,7 @@ import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
-public @interface Component {
+public @interface Controller {
 
     Class<?> value() default Empty.class;
 

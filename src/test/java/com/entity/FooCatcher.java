@@ -4,12 +4,12 @@ import com.crumb.annotation.Autowired;
 import com.crumb.annotation.Component;
 import com.crumb.annotation.Lazy;
 
-@Component
+@Component(name = "catcher")
 @Lazy
 public class FooCatcher {
 
     @Autowired
-    Foo foo;
+    IFoo foo;
 
     public void doFooTest() {
         foo.test();

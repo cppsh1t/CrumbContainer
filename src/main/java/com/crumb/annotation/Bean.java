@@ -12,4 +12,6 @@ import java.lang.annotation.Target;
 public @interface Bean {
 
     Class<?> value() default Empty.class;
+
+    String name() default "";
 }

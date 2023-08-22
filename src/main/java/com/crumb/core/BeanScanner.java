@@ -3,6 +3,7 @@ package com.crumb.core;
 
 import com.crumb.builder.BeanDefinitionBuilder;
 import com.crumb.definition.BeanDefinition;
+import com.crumb.definition.BeanJudge;
 import com.crumb.util.FileUtil;
 import com.crumb.util.ReflectUtil;
 import com.crumb.util.StringUtil;
@@ -34,6 +35,14 @@ public class BeanScanner {
             Arrays.stream(paths).forEach(p -> log.debug("get componentScanPath: {}", p));
         }
         return scanPaths;
+    }
+
+
+    public List<File> getComponentFiles(Set<String> paths) {
+        return paths.stream()
+                .map(this::getComponentFile)
+                .flatMap(List::stream)
+                .collect(Collectors.toList());
     }
 
     public List<File> getComponentFile(String scanPath) {
@@ -78,7 +87,7 @@ public class BeanScanner {
 
             try {
                 Class<?> clazz = classLoader.loadClass(className);
-                if (!clazz.isAnnotationPresent(Component.class)) return;
+                if (!BeanJudge.isComponent(clazz)) return;
 
                 var definition = BeanDefinitionBuilder.getComponentDef(clazz);
                 definitions.add(definition);
@@ -93,10 +102,10 @@ public class BeanScanner {
     public List<Method> getBeanMethod(Class<?> configurationClass) {
         return configurationClass.isAnnotationPresent(Configuration.class)
                 ? Arrays.stream(configurationClass.getDeclaredMethods())
-                        .filter(method -> method.isAnnotationPresent(Bean.class)
-                                        && method.getReturnType() != void.class)
-                        .peek(method -> log.debug("get beanMethod: {}", method))
-                        .collect(Collectors.toList())
+                .filter(method -> method.isAnnotationPresent(Bean.class)
+                        && method.getReturnType() != void.class)
+                .peek(method -> log.debug("get beanMethod: {}", method))
+                .collect(Collectors.toList())
                 : new ArrayList<>();
     }
 

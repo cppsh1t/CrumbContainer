@@ -5,16 +5,17 @@ import ch.qos.logback.classic.Logger;
 import com.crumb.builder.BeanDefinitionBuilder;
 import com.crumb.data.MapperScanner;
 import com.crumb.definition.BeanDefinition;
+import com.crumb.definition.BeanJudge;
 import com.crumb.exception.BeanNotFoundException;
 import com.crumb.proxy.ProxyFactory;
 import com.crumb.util.ClassConverter;
 import com.crumb.util.ReflectUtil;
+import com.crumb.util.StringUtil;
 import lombok.extern.slf4j.Slf4j;
 import com.crumb.annotation.Autowired;
 import com.crumb.annotation.EnableAspectProxy;
 import com.crumb.annotation.Lazy;
 import com.crumb.definition.ScopeType;
-import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.slf4j.LoggerFactory;
 
@@ -77,10 +78,8 @@ public class CrumbContainer implements BeanFactory {
         log.debug(BLUE + "start processing configuration" + RESET);
         mapperPaths.addAll(MapperScanner.getMapperPaths(configClass));
         var scanPaths = scanner.getComponentScanPath(configClass);
-        var classFiles = scanPaths.stream()
-                .map(scanner::getComponentFile)
-                .flatMap(List::stream)
-                .collect(Collectors.toList());
+        var classFiles = scanner.getComponentFiles(scanPaths);
+
         beanDefSet.addAll(scanner.getBeanDefinition(classFiles));
         factoryBeanMap.putAll(scanner.getFactoryBeanDefinition(beanDefSet));
         remainBeanDefSet.addAll(beanDefSet.stream().filter(def -> def.scope == ScopeType.SINGLETON
@@ -116,7 +115,7 @@ public class CrumbContainer implements BeanFactory {
     }
 
     private Object getBeanInside(Class<?> clazz) {
-        if (clazz.isAnnotationPresent(Mapper.class)) {
+        if (BeanJudge.isMapper(clazz)) {
             return getMapper(clazz);
         }
 
@@ -194,7 +193,8 @@ public class CrumbContainer implements BeanFactory {
         var bean = factoryBean.getObject();
         if (isSingleton) {
             factoryBeanMap.remove(clazz);
-            var beanDef = new BeanDefinition(clazz, bean.getClass(), ScopeType.SINGLETON);
+            var beanDef = new BeanDefinition(clazz, bean.getClass(),
+                    StringUtil.lowerFirst(clazz.getSimpleName()), ScopeType.SINGLETON);
             registerBean(beanDef, bean);
         }
         return bean;
@@ -235,7 +235,8 @@ public class CrumbContainer implements BeanFactory {
             hasAddMappers = true;
         }
         var mapper = sqlSessionFactory.openSession(true).getMapper(clazz);
-        registerBean(new BeanDefinition(clazz, mapper.getClass(), ScopeType.SINGLETON), mapper);
+        var def = new BeanDefinition(clazz, mapper.getClass(), StringUtil.lowerFirst(clazz.getSimpleName()), ScopeType.SINGLETON);
+        registerBean(def, mapper);
         return mapper;
     }
 
@@ -246,6 +247,18 @@ public class CrumbContainer implements BeanFactory {
 
     public <T> T getBean(Class<T> clazz) {
         return (T) getBeanInside(clazz);
+    }
+
+    public Object getBean(String name) {
+        log.debug("want to get Bean which name: {}", name);
+        var def = getBeanDefinition(name);
+        if (def != null) {
+            return createBean(def);
+        } else {
+            var method = getBeanMethod(name);
+            if (method == null) throw new BeanNotFoundException(name);
+            return createBean(method);
+        }
     }
 
     public boolean registerBean(BeanDefinition definition, Object object) {
@@ -261,9 +274,20 @@ public class CrumbContainer implements BeanFactory {
         return beanDefSet.stream().filter(def -> def.keyType == clazz).findFirst().orElse(null);
     }
 
+    public BeanDefinition getBeanDefinition(String name) {
+        return beanDefSet.stream().filter(def -> def.name.equals(name)).findFirst().orElse(null);
+    }
+
     private Method getBeanMethod(Class<?> returnType) {
         return beanMethods.stream()
                 .filter(method -> BeanDefinitionBuilder.getKeyType(method) == returnType)
+                .findFirst()
+                .orElse(null);
+    }
+
+    private Method getBeanMethod(String name) {
+        return beanMethods.stream()
+                .filter(method -> BeanDefinitionBuilder.getName(method).equals(name))
                 .findFirst()
                 .orElse(null);
     }
