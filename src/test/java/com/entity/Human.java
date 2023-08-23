@@ -2,8 +2,10 @@ package com.entity;
 
 import com.crumb.annotation.Autowired;
 import com.crumb.annotation.Component;
+import com.crumb.annotation.Lazy;
 
 @Component
+@Lazy
 public class Human {
     String name;
 

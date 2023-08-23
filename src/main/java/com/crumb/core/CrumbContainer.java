@@ -2,6 +2,7 @@ package com.crumb.core;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
+import com.crumb.beanProcess.BeanPostProcessor;
 import com.crumb.builder.BeanDefinitionBuilder;
 import com.crumb.data.MapperScanner;
 import com.crumb.definition.BeanDefinition;
@@ -38,8 +39,6 @@ public class CrumbContainer implements BeanFactory {
     private final BeanScanner scanner = new BeanScanner();
     private final ObjectFactory objectFactory = new ObjectFactory(this::getBeanInside);
     private final ValuesFactory valuesFactory = new ValuesFactory();
-    private final BeanIniter beanIniter = new BeanIniter();
-    private final BeanDestroyer beanDestroyer = new BeanDestroyer();
     private final ProxyFactory proxyFactory = new ProxyFactory(this::getBeanInside);
 
     private final Class<?> configClass;
@@ -57,6 +56,12 @@ public class CrumbContainer implements BeanFactory {
 
     private final Map<Class<?>, BeanDefinition> factoryBeanMap = new ConcurrentHashMap<>();
     private final Map<Class<?>, Method> factoryMethodBeanMap = new ConcurrentHashMap<>();
+
+    private final Set<BeanDefinition> processorDefs = new HashSet<>();
+    private final Set<BeanPostProcessor> postProcessors = new HashSet<>();
+
+    private final BeanLifeCycle lifeCycle = new BeanLifeCycle(valuesFactory::setPropsValue, this::injectBean,
+            this::proxyBean, this.postProcessors);
 
     public CrumbContainer(Class<?> configClass) {
         valuesFactory.logBanner();
@@ -90,6 +95,10 @@ public class CrumbContainer implements BeanFactory {
         remainBeanMethods.addAll(beanMethods.stream()
                 .filter(method -> !method.isAnnotationPresent(Lazy.class)).collect(Collectors.toSet()));
 
+        processorDefs.addAll(beanDefSet.stream()
+                .filter(def -> BeanPostProcessor.class.isAssignableFrom(def.clazz))
+                .collect(Collectors.toSet()));
+
         if (enableProxy) {
             aopDefMap.putAll(scanner.getAopBeanDefinition(beanDefSet));
         }
@@ -103,6 +112,13 @@ public class CrumbContainer implements BeanFactory {
 
     private void createComponents() {
         log.debug(BLUE + "start creating components" + RESET);
+
+        for (var def : processorDefs) {
+            var processor = createBean(def);
+            postProcessors.add((BeanPostProcessor) processor);
+            log.debug("proactively created the processor: {}", processor);
+        }
+
         for(var def : remainBeanDefSet) {
             var component = createBean(def);
             log.debug("proactively created the component: {}", component);
@@ -139,21 +155,14 @@ public class CrumbContainer implements BeanFactory {
         log.debug("want to get Bean: {}", definition);
         if (definition.scope == ScopeType.PROTOTYPE) {
             var origin = prototypeCache.getOrDefault(definition, objectFactory.getBean(definition.clazz));
-            valuesFactory.setPropsValue(origin);
-            var instance = proxyBean(origin, definition);
-            injectBean(origin, definition);
-            beanIniter.initBean(origin);
-            return instance;
+            return lifeCycle.makeLifeCycle(origin, definition);
         }
         // definition.scope == ScopeType.SINGLETON
         var instance = singletonObjects.getOrDefault(definition, earlySingletonObjects.getOrDefault(definition, null));
         if (instance == null) {
             remainBeanDefSet.remove(definition);
-            instance = objectFactory.getBean(definition.clazz);
-            valuesFactory.setPropsValue(instance);
-            instance = proxyBean(instance, definition);
-            injectBean(instance, definition);
-            beanIniter.initBean(instance);
+            var origin = objectFactory.getBean(definition.clazz);
+            instance = lifeCycle.makeLifeCycle(origin, definition);
             registerBean(definition, instance);
         }
 
@@ -292,6 +301,10 @@ public class CrumbContainer implements BeanFactory {
                 .orElse(null);
     }
 
+    public Set<BeanPostProcessor> getBeanPostProcessors() {
+        return this.postProcessors;
+    }
+
     public void logBeanDefs() {
         beanDefSet.forEach(System.out::println);
     }
@@ -306,7 +319,12 @@ public class CrumbContainer implements BeanFactory {
     }
 
     public void close() {
-        singletonObjects.values().forEach(beanDestroyer::destroyBean);
+        for(var pair : singletonObjects.entrySet()) {
+            var def = pair.getKey();
+            var bean = pair.getValue();
+            lifeCycle.overLifeCycle(bean, def.name);
+        }
+
         singletonObjects.clear();
         beanDefSet.clear();
         remainBeanDefSet.clear();
