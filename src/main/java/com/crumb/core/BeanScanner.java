@@ -85,6 +85,10 @@ public class BeanScanner {
             String className = fileName.substring(fileName.indexOf(packName), fileName.indexOf(".class"));
             className = className.replace("\\", ".");
 
+            if (className.contains("WEB-INF.classes.")) {
+                className = className.replace("WEB-INF.classes.", "");
+            }
+
             try {
                 Class<?> clazz = classLoader.loadClass(className);
                 if (!BeanJudge.isComponent(clazz)) return;
