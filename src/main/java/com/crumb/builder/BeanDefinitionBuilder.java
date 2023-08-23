@@ -20,7 +20,7 @@ public class BeanDefinitionBuilder {
         if (clazz.isAnnotationPresent(Component.class)) {
             keyType = clazz.getAnnotation(Component.class).value();
         } else if (clazz.isAnnotationPresent(Controller.class)) {
-            keyType = clazz.getAnnotation(Controller.class).value();
+            keyType = clazz.getAnnotation(Controller.class).type();
         } else {
             throw new BeanDefinitionParseException();
         }
@@ -55,7 +55,7 @@ public class BeanDefinitionBuilder {
         if (clazz.isAnnotationPresent(Component.class)) {
             name = clazz.getAnnotation(Component.class).name();
         } else if (clazz.isAnnotationPresent(Controller.class)) {
-            name = clazz.getAnnotation(Controller.class).name();
+            name = clazz.getAnnotation(Controller.class).value();
         } else {
             throw new BeanDefinitionParseException();
         }

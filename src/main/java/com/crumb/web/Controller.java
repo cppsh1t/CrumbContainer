@@ -11,7 +11,7 @@ import java.lang.annotation.Target;
 @Target(ElementType.TYPE)
 public @interface Controller {
 
-    Class<?> value() default Empty.class;
+    String value() default "";
 
-    String name() default "";
+    Class<?> type() default Empty.class;
 }
