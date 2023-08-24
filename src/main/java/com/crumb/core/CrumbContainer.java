@@ -23,6 +23,7 @@ import org.slf4j.LoggerFactory;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static com.crumb.misc.Color.*;
@@ -285,6 +286,10 @@ public class CrumbContainer implements BeanFactory {
 
     public BeanDefinition getBeanDefinition(String name) {
         return beanDefSet.stream().filter(def -> def.name.equals(name)).findFirst().orElse(null);
+    }
+
+    public BeanDefinition getBeanDefinition(Predicate<BeanDefinition> predicate) {
+        return beanDefSet.stream().filter(predicate).findFirst().orElse(null);
     }
 
     private Method getBeanMethod(Class<?> returnType) {
