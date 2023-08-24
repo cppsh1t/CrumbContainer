@@ -288,8 +288,8 @@ public class CrumbContainer implements BeanFactory {
         return beanDefSet.stream().filter(def -> def.name.equals(name)).findFirst().orElse(null);
     }
 
-    public BeanDefinition getBeanDefinition(Predicate<BeanDefinition> predicate) {
-        return beanDefSet.stream().filter(predicate).findFirst().orElse(null);
+    public BeanDefinition[] getBeanDefinition(Predicate<BeanDefinition> predicate) {
+        return beanDefSet.stream().filter(predicate).toArray(BeanDefinition[]::new);
     }
 
     private Method getBeanMethod(Class<?> returnType) {
