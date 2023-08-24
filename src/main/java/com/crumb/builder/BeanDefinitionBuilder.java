@@ -10,25 +10,35 @@ import com.crumb.exception.BeanDefinitionParseException;
 import com.crumb.util.ClassConverter;
 import com.crumb.util.StringUtil;
 import com.crumb.web.Controller;
+import com.crumb.web.Service;
 
 import java.lang.reflect.Method;
+import java.util.Arrays;
+import java.util.Objects;
 
 public class BeanDefinitionBuilder {
 
     public static Class<?> getKeyType(Class<?> clazz) {
+
         Class<?> keyType;
         if (clazz.isAnnotationPresent(Component.class)) {
             keyType = clazz.getAnnotation(Component.class).value();
+            return keyType != Empty.class ? keyType : clazz;
         } else if (clazz.isAnnotationPresent(Controller.class)) {
             keyType = clazz.getAnnotation(Controller.class).type();
+            return keyType != Empty.class ? keyType : clazz;
+        } else if (clazz.isAnnotationPresent(Service.class)) {
+            keyType = clazz.getAnnotation(Service.class).value();
+            Class<?> serviceType = null;
+            if (clazz.getInterfaces().length == 1) {
+                serviceType = Arrays.stream(clazz.getInterfaces()).findFirst().orElse(null);
+            }
+            if (keyType != Empty.class) {
+                return keyType;
+            } else return Objects.requireNonNullElse(serviceType, clazz);
         } else {
             throw new BeanDefinitionParseException();
         }
-
-        if (keyType == Empty.class) {
-            keyType = clazz;
-        }
-        return keyType;
     }
 
     public static Class<?> getKeyType(Method method) {
@@ -56,6 +66,8 @@ public class BeanDefinitionBuilder {
             name = clazz.getAnnotation(Component.class).name();
         } else if (clazz.isAnnotationPresent(Controller.class)) {
             name = clazz.getAnnotation(Controller.class).value();
+        } else if (clazz.isAnnotationPresent(Service.class)) {
+            name = clazz.getAnnotation(Service.class).name();
         } else {
             throw new BeanDefinitionParseException();
         }

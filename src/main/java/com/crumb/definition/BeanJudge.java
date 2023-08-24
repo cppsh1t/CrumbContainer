@@ -2,6 +2,7 @@ package com.crumb.definition;
 
 import com.crumb.annotation.Component;
 import com.crumb.web.Controller;
+import com.crumb.web.Service;
 import org.apache.ibatis.annotations.*;
 
 import java.util.Arrays;
@@ -9,7 +10,9 @@ import java.util.Arrays;
 public class BeanJudge {
 
     public static boolean isComponent(Class<?> clazz) {
-        return clazz.isAnnotationPresent(Component.class) || clazz.isAnnotationPresent(Controller.class);
+        return clazz.isAnnotationPresent(Component.class)
+                || clazz.isAnnotationPresent(Controller.class)
+                || clazz.isAnnotationPresent(Service.class);
     }
 
     public static boolean isMapper(Class<?> clazz) {
