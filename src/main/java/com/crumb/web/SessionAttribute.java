@@ -12,4 +12,6 @@ public @interface SessionAttribute {
     String value() default "";
 
     boolean required() default true;
+
+    String defaultValue() default "";
 }

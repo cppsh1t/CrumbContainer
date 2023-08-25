@@ -11,5 +11,5 @@ public @interface RequestMapping {
 
     String value();
 
-    String[] params() default "";
+    String[] params() default {};
 }

@@ -7,5 +7,9 @@ import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
-public @interface RequestBody {
+public @interface PutMapping {
+
+    String value();
+
+    String[] params() default {};
 }
