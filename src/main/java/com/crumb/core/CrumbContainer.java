@@ -29,7 +29,7 @@ import java.util.stream.Collectors;
 import static com.crumb.misc.Color.*;
 
 @Slf4j
-public class CrumbContainer implements BeanFactory {
+public class CrumbContainer implements BeanFactory, Container {
 
     private final List<String> mapperPaths = new ArrayList<>();
 

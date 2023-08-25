@@ -8,6 +8,7 @@ import com.zaxxer.hikari.HikariDataSource;
 import javax.sql.DataSource;
 import java.util.Random;
 
+@MainConfiguration
 @ComponentScan("com")
 @Configuration
 @EnableAspectProxy
