@@ -1,7 +1,7 @@
 package com;
 
 import ch.qos.logback.classic.Level;
-import com.config.AppConfig;
+import com.crumb.annotation.Resource;
 import com.crumb.core.CrumbContainer;
 import com.crumb.core.MainContainer;
 import com.entity.Human;

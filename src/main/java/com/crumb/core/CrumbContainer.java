@@ -2,6 +2,7 @@ package com.crumb.core;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
+import com.crumb.annotation.Resource;
 import com.crumb.beanProcess.BeanPostProcessor;
 import com.crumb.builder.BeanDefinitionBuilder;
 import com.crumb.data.MapperScanner;
@@ -38,7 +39,7 @@ public class CrumbContainer implements BeanFactory, Container {
     private boolean hasAddMappers = false;
 
     private final BeanScanner scanner = new BeanScanner();
-    private final ObjectFactory objectFactory = new ObjectFactory(this::getBeanInside);
+    private final ObjectFactory objectFactory = new ObjectFactory(this::getBeanInside, this::getBean);
     private final ValuesFactory valuesFactory = new ValuesFactory();
     private final ProxyFactory proxyFactory = new ProxyFactory(this::getBeanInside);
 
@@ -211,7 +212,7 @@ public class CrumbContainer implements BeanFactory, Container {
     }
 
     private void injectBean(Object bean, BeanDefinition definition) {
-        if (!ReflectUtil.hasAnnotationOnField(definition.clazz, Autowired.class)) return;
+        if (!ReflectUtil.hasAnnotationsOnField(definition.clazz, new Class[]{Autowired.class, Resource.class})) return;
         log.debug("want to inject Bean: {}, which definition: {}", bean, definition);
         boolean isPrototype = definition.scope == ScopeType.PROTOTYPE;
         var targetCache = isPrototype ? prototypeCache : earlySingletonObjects;

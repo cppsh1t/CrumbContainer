@@ -1,6 +1,6 @@
 package com.crumb.core;
 
-public interface ObjectGetter {
+public interface ObjectGetterByType {
 
     Object getObject(Class<?> clazz);
 }

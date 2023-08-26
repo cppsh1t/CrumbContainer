@@ -7,7 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.sf.cglib.proxy.Enhancer;
 import net.sf.cglib.proxy.MethodInterceptor;
 import net.sf.cglib.proxy.MethodProxy;
-import com.crumb.core.ObjectGetter;
+import com.crumb.core.ObjectGetterByType;
 import com.crumb.exception.MethodRuleException;
 
 import java.lang.reflect.Method;
@@ -17,11 +17,11 @@ import java.util.stream.Collectors;
 @Slf4j
 public class ProxyFactory {
 
-    private final ObjectGetter objectGetter;
+    private final ObjectGetterByType objectGetterByType;
     private final Enhancer enhancer = new Enhancer();
 
-    public ProxyFactory(ObjectGetter objectGetter) {
-        this.objectGetter = objectGetter;
+    public ProxyFactory(ObjectGetterByType objectGetterByType) {
+        this.objectGetterByType = objectGetterByType;
     }
 
     public Object makeProxy(Object origin, Object aopObj) {
@@ -87,7 +87,7 @@ public class ProxyFactory {
             var paramTypes = Arrays.stream(autoCon.getParameterTypes())
                     .map(ClassConverter::convertPrimitiveType).toArray(Class<?>[]::new);
             var params = Arrays.stream(paramTypes)
-                    .map(objectGetter::getObject).toArray();
+                    .map(objectGetterByType::getObject).toArray();
             var instance = enhancer.create(paramTypes, params);
             log.debug("create the proxyInstance: {}", instance);
             return instance;

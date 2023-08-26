@@ -15,7 +15,7 @@ import java.util.Random;
 @MapperScan("com.mapper")
 public class AppConfig {
 
-    @Bean
+    @Bean(name = "retardName")
     @Lazy
     public String getName() {
         return "Xqc";

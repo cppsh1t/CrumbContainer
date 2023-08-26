@@ -12,10 +12,12 @@ import java.util.stream.Collectors;
 @Slf4j
 public class ObjectFactory implements BeanFactory {
 
-    private final ObjectGetter objectGetter;
+    private final ObjectGetterByType objectGetterByType;
+    private final ObjectGetterByName objectGetterByName;
 
-    public ObjectFactory(ObjectGetter objectGetter) {
-        this.objectGetter = objectGetter;
+    public ObjectFactory(ObjectGetterByType objectGetterByType, ObjectGetterByName objectGetterByName) {
+        this.objectGetterByType = objectGetterByType;
+        this.objectGetterByName = objectGetterByName;
     }
 
     public <T> T getBean(Class<T> clazz) {
@@ -23,7 +25,7 @@ public class ObjectFactory implements BeanFactory {
         if (autowiredCon != null) {
             var params = Arrays.stream(autowiredCon.getParameterTypes())
                     .map(ClassConverter::convertPrimitiveType)
-                    .map(objectGetter::getObject).toArray();
+                    .map(objectGetterByType::getObject).toArray();
             var instance = ReflectUtil.createInstance(autowiredCon, params);
             log.debug("make the instance: {}, which use Autowired-Constructor: {}", instance, autowiredCon);
             return (T) instance;
@@ -43,13 +45,13 @@ public class ObjectFactory implements BeanFactory {
             return instance;
         } else if (method.getParameterCount() == 1) {
             var param = Arrays.stream(method.getParameterTypes())
-                    .map(objectGetter::getObject).findFirst().orElse(null);
+                    .map(objectGetterByType::getObject).findFirst().orElse(null);
             var instance = ReflectUtil.invokeMethod(method, invoker, param);
             log.debug("make the instance: {}, which use method: {}, params: {}", instance, method, param);
             return instance;
         } else {
             var params = Arrays.stream(method.getParameterTypes())
-                    .map(objectGetter::getObject)
+                    .map(objectGetterByType::getObject)
                     .collect(Collectors.toList());
             var instance = ReflectUtil.invokeMethod(method, invoker, params);
             log.debug("make the instance: {}, which use method: {}, params: {}", instance, method, params);
@@ -58,9 +60,14 @@ public class ObjectFactory implements BeanFactory {
     }
 
     public void injectBean(Object bean) {
-        var fields = ReflectUtil.getFieldsWithAnnotation(bean.getClass(), Autowired.class);
+        var fields = ReflectUtil.getInjectableFields(bean.getClass());
         fields.forEach(field -> {
-            var value = objectGetter.getObject(field.getType());
+            Object value = null;
+            if (field.isAnnotationPresent(Autowired.class)) {
+                value = objectGetterByType.getObject(field.getType());
+            } else {
+                value = objectGetterByName.getObject(field.getName());
+            }
             ReflectUtil.setFieldValue(field, bean, value);
             log.debug("set value: {} on field: {}, targetBean: {}", value, field.getName(), bean);
         });

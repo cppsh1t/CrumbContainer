@@ -1,5 +1,7 @@
 package com.crumb.util;
 
+import com.crumb.annotation.Autowired;
+import com.crumb.annotation.Resource;
 import com.crumb.exception.DefaultConstructorException;
 import com.crumb.exception.CreateInstanceException;
 import com.crumb.exception.MethodInvocationException;
@@ -8,6 +10,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 
@@ -60,9 +63,27 @@ public class ReflectUtil {
         return result != null;
     }
 
+    public static boolean hasAnnotationsOnField(Class<?> clazz, Class<? extends Annotation>[] annos) {
+        var result = Arrays.stream(clazz.getDeclaredFields())
+                .filter(field -> {
+                    for(var anno : annos) {
+                        if (field.isAnnotationPresent(anno)) return true;
+                    }
+                    return false;
+                })
+                .findFirst().orElse(null);
+        return result != null;
+    }
+
     public static List<Field> getFieldsWithAnnotation(Class<?> clazz, Class<? extends Annotation> anno) {
         return Arrays.stream(clazz.getDeclaredFields())
                 .filter(field -> field.isAnnotationPresent(anno))
+                .collect(Collectors.toList());
+    }
+
+    public static List<Field> getInjectableFields(Class<?> clazz) {
+        return Arrays.stream(clazz.getDeclaredFields())
+                .filter(f -> f.isAnnotationPresent(Autowired.class) || f.isAnnotationPresent(Resource.class))
                 .collect(Collectors.toList());
     }
 
