@@ -5,9 +5,17 @@ import com.crumb.web.Controller;
 import com.crumb.web.Service;
 import org.apache.ibatis.annotations.*;
 
-import java.util.Arrays;
+import java.lang.annotation.Annotation;
+import java.util.HashSet;
+import java.util.Set;
 
 public class BeanJudge {
+
+    public static Set<Class<? extends Annotation>> getComponentTypeAnno() {
+        var set = new HashSet<Class<? extends Annotation>>();
+        set.add(Component.class);set.add(Controller.class);set.add(Service.class);
+        return set;
+    }
 
     public static boolean isComponent(Class<?> clazz) {
         return clazz.isAnnotationPresent(Component.class)

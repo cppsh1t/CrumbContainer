@@ -1,19 +1,21 @@
 package com;
 
 import ch.qos.logback.classic.Level;
-import com.crumb.annotation.Resource;
-import com.crumb.core.CrumbContainer;
+import com.config.AppConfig;
+import com.crumb.core.Container;
+import com.crumb.core.DefaultContainer;
+import com.crumb.core.EnhancedContainer;
 import com.crumb.core.MainContainer;
-import com.entity.Human;
 import com.service.SleepService;
-import com.service.SleepServiceImpl;
+
+
 
 
 public class MainTest {
 
     public static void main(String[] args) {
-        CrumbContainer.setLoggerLevel(Level.DEBUG);
-        var container = MainContainer.getContainer();
+        Container.setLoggerLevel(Level.DEBUG);
+        var container = MainContainer.getContainer(EnhancedContainer.class);
         container.getBean(SleepService.class).sleep();
     }
 }

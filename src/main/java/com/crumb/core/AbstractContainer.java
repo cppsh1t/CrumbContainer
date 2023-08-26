@@ -1,23 +1,23 @@
 package com.crumb.core;
 
-import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
+import com.crumb.annotation.Autowired;
+import com.crumb.annotation.EnableAspectProxy;
+import com.crumb.annotation.Lazy;
 import com.crumb.annotation.Resource;
 import com.crumb.beanProcess.BeanPostProcessor;
 import com.crumb.builder.BeanDefinitionBuilder;
 import com.crumb.data.MapperScanner;
 import com.crumb.definition.BeanDefinition;
 import com.crumb.definition.BeanJudge;
+import com.crumb.definition.ScopeType;
 import com.crumb.exception.BeanNotFoundException;
+import com.crumb.proxy.DefaultProxyFactory;
 import com.crumb.proxy.ProxyFactory;
 import com.crumb.util.ClassConverter;
 import com.crumb.util.ReflectUtil;
 import com.crumb.util.StringUtil;
 import lombok.extern.slf4j.Slf4j;
-import com.crumb.annotation.Autowired;
-import com.crumb.annotation.EnableAspectProxy;
-import com.crumb.annotation.Lazy;
-import com.crumb.definition.ScopeType;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.slf4j.LoggerFactory;
 
@@ -28,54 +28,80 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static com.crumb.misc.Color.*;
+import static com.crumb.misc.Color.BLUE;
 
-@Slf4j
-public class CrumbContainer implements BeanFactory, Container {
 
-    private final List<String> mapperPaths = new ArrayList<>();
+public class AbstractContainer implements Container{
 
-    private boolean canOverride = false;
-    private boolean enableProxy = false;
-    private boolean hasAddMappers = false;
+    protected Logger log = (Logger) LoggerFactory.getLogger(this.getClass());
 
-    private final BeanScanner scanner = new BeanScanner();
-    private final ObjectFactory objectFactory = new ObjectFactory(this::getBeanInside, this::getBean);
-    private final ValuesFactory valuesFactory = new ValuesFactory();
-    private final ProxyFactory proxyFactory = new ProxyFactory(this::getBeanInside);
+    //region Flags
+    protected boolean canOverride = false;
+    protected boolean enableProxy = false;
+    protected boolean hasAddMappers = false;
+    //endregion
 
-    private final Class<?> configClass;
-    private Object configObj;
+    //region Configuration
+    protected final Class<?> configClass;
+    protected Object configObj;
+    protected final List<String> mapperPaths = new ArrayList<>();
+    //endregion
 
-    private final Set<BeanDefinition> beanDefSet = new HashSet<>();
-    private final Set<Method> beanMethods = ConcurrentHashMap.newKeySet();
-    private final Set<BeanDefinition> remainBeanDefSet = ConcurrentHashMap.newKeySet();
-    private final Set<Method> remainBeanMethods = ConcurrentHashMap.newKeySet();
-    private final Map<Class<?>, BeanDefinition> aopDefMap = new ConcurrentHashMap<>();
+    //region ChildrenModules
+    protected BeanScanner scanner;
+    protected ObjectFactory objectFactory;
+    protected ValuesFactory valuesFactory;
+    protected ProxyFactory proxyFactory;
+    //endregion
 
-    private final Map<BeanDefinition, Object> singletonObjects = new ConcurrentHashMap<>();
-    private final Map<BeanDefinition, Object> earlySingletonObjects = new ConcurrentHashMap<>();
-    private final Map<BeanDefinition, Object> prototypeCache = new ConcurrentHashMap<>();
+    //region BeanDefinitions Holder
+    protected final Set<BeanDefinition> beanDefSet = new HashSet<>();
+    protected final Set<Method> beanMethods = ConcurrentHashMap.newKeySet();
+    protected final Set<BeanDefinition> remainBeanDefSet = ConcurrentHashMap.newKeySet();
+    protected final Set<Method> remainBeanMethods = ConcurrentHashMap.newKeySet();
+    protected final Map<Class<?>, BeanDefinition> aopDefMap = new ConcurrentHashMap<>();
+    //endregion
 
-    private final Map<Class<?>, BeanDefinition> factoryBeanMap = new ConcurrentHashMap<>();
-    private final Map<Class<?>, Method> factoryMethodBeanMap = new ConcurrentHashMap<>();
+    //region Singleton and Prototype
+    protected final Map<BeanDefinition, Object> singletonObjects = new ConcurrentHashMap<>();
+    protected final Map<BeanDefinition, Object> earlySingletonObjects = new ConcurrentHashMap<>();
+    protected final Map<BeanDefinition, Object> prototypeCache = new ConcurrentHashMap<>();
+    //endregion
 
-    private final Set<BeanDefinition> processorDefs = new HashSet<>();
-    private final Set<BeanPostProcessor> postProcessors = new HashSet<>();
+    //region FactoryBean Map
+    protected final Map<Class<?>, BeanDefinition> factoryBeanMap = new ConcurrentHashMap<>();
+    protected final Map<Class<?>, Method> factoryMethodBeanMap = new ConcurrentHashMap<>();
+    //endregion
 
-    private final BeanLifeCycle lifeCycle = new BeanLifeCycle(valuesFactory::setPropsValue, this::injectBean,
-            this::proxyBean, this.postProcessors);
+    //region PostProcessor
+    protected final Set<BeanDefinition> processorDefs = new HashSet<>();
+    protected final Set<BeanPostProcessor> postProcessors = new HashSet<>();
+    //endregion
 
-    public CrumbContainer(Class<?> configClass) {
-        valuesFactory.logBanner();
+    //region BeanLifeCycle
+    protected BeanLifeCycle lifeCycle;
+    //endregion
+
+    public AbstractContainer(Class<?> configClass) {
         this.configClass = configClass;
         if (configClass.isAnnotationPresent(EnableAspectProxy.class)) {
             enableProxy = true;
-            log.info(YELLOW + "Enable AspectProxy need VM parameter: --add-opens java.base/java.lang=ALL-UNNAMED" + RESET);
         }
-        initContext();
+        initContainerProp();
+        logBanner();
+        initContainer();
     }
 
-    private void initContext() {
+    protected void initContainerProp() {
+        scanner = new DefaultBeanScanner();
+        objectFactory = new DefaultObjectFactory(this::getBeanInside, this::getBean);
+        valuesFactory = new DefaultValuesFactory();
+        proxyFactory = new DefaultProxyFactory(this::getBeanInside);
+        lifeCycle = new DefaultBeanLifeCycle(valuesFactory::setPropsValue, this::injectBean,
+                this::proxyBean, this.postProcessors);
+    }
+
+    private void initContainer() {
         processConfig();
         createComponents();
         log.info(GREEN + "Successfully started crumbContainer" + RESET);
@@ -84,10 +110,8 @@ public class CrumbContainer implements BeanFactory, Container {
     private void processConfig() {
         log.debug(BLUE + "start processing configuration" + RESET);
         mapperPaths.addAll(MapperScanner.getMapperPaths(configClass));
-        var scanPaths = scanner.getComponentScanPath(configClass);
-        var classFiles = scanner.getComponentFiles(scanPaths);
 
-        beanDefSet.addAll(scanner.getBeanDefinition(classFiles));
+        beanDefSet.addAll(scanner.getBeanDefinition(configClass));
         factoryBeanMap.putAll(scanner.getFactoryBeanDefinition(beanDefSet));
         remainBeanDefSet.addAll(beanDefSet.stream().filter(def -> def.scope == ScopeType.SINGLETON
                 && !def.clazz.isAnnotationPresent(Lazy.class)).collect(Collectors.toSet()));
@@ -105,12 +129,10 @@ public class CrumbContainer implements BeanFactory, Container {
             aopDefMap.putAll(scanner.getAopBeanDefinition(beanDefSet));
         }
 
-
         configObj = ReflectUtil.createInstance(configClass);
         injectConfigObj();
         log.debug(BLUE + "end processing configuration" + RESET);
     }
-
 
     private void createComponents() {
         log.debug(BLUE + "start creating components" + RESET);
@@ -132,7 +154,7 @@ public class CrumbContainer implements BeanFactory, Container {
         log.debug(BLUE + "end creating components" + RESET);
     }
 
-    private Object getBeanInside(Class<?> clazz) {
+    protected final Object getBeanInside(Class<?> clazz) {
         if (BeanJudge.isMapper(clazz)) {
             return getMapper(clazz);
         }
@@ -143,13 +165,13 @@ public class CrumbContainer implements BeanFactory, Container {
         if (definition != null) {
             return createBean(definition);
         } else {
-             var bean = createBean(finalClazz);
-             if (bean == null)
-             {
-                 bean = Optional.ofNullable(createBeanFromFactoryBean(finalClazz))
-                         .orElseThrow(() -> new BeanNotFoundException(finalClazz));
-             }
-             return bean;
+            var bean = createBean(finalClazz);
+            if (bean == null)
+            {
+                bean = Optional.ofNullable(createBeanFromFactoryBean(finalClazz))
+                        .orElseThrow(() -> new BeanNotFoundException(finalClazz));
+            }
+            return bean;
         }
     }
 
@@ -178,7 +200,6 @@ public class CrumbContainer implements BeanFactory, Container {
         return createBean(method);
     }
 
-
     private Object createBean(Method method) {
         log.debug("want to get Bean which use method: {}", method);
         var instance = objectFactory.getBean(method, configObj);
@@ -186,6 +207,33 @@ public class CrumbContainer implements BeanFactory, Container {
         var def = BeanDefinitionBuilder.getMethodBeanDef(method);
         registerBean(def, instance);
         return instance;
+    }
+
+    protected final void injectBean(Object bean, BeanDefinition definition) {
+        if (!ReflectUtil.hasAnnotationsOnField(definition.clazz, new Class[]{Autowired.class, Resource.class})) return;
+        log.debug("want to inject Bean: {}, which definition: {}", bean, definition);
+        boolean isPrototype = definition.scope == ScopeType.PROTOTYPE;
+        var targetCache = isPrototype ? prototypeCache : earlySingletonObjects;
+
+        if (!targetCache.containsKey(definition)) {
+            log.debug("put {} into cache", bean);
+            targetCache.put(definition, bean);
+            objectFactory.injectBean(bean);
+            targetCache.remove(definition);
+            log.debug("remove {} from cache", bean);
+        }
+    }
+
+    protected final Object proxyBean(Object bean, BeanDefinition definition) {
+        if (!enableProxy) return bean;
+
+        var keyType = definition.keyType;
+        var def = aopDefMap.get(keyType);
+        if (def == null) return bean;
+
+        var aopObj = createBean(def);
+        log.debug("will proxy bean: {} with {}", bean, aopObj);
+        return proxyFactory.makeProxy(bean, aopObj);
     }
 
     private Object createBeanFromFactoryBean(Class<?> clazz) {
@@ -211,31 +259,9 @@ public class CrumbContainer implements BeanFactory, Container {
         return bean;
     }
 
-    private void injectBean(Object bean, BeanDefinition definition) {
-        if (!ReflectUtil.hasAnnotationsOnField(definition.clazz, new Class[]{Autowired.class, Resource.class})) return;
-        log.debug("want to inject Bean: {}, which definition: {}", bean, definition);
-        boolean isPrototype = definition.scope == ScopeType.PROTOTYPE;
-        var targetCache = isPrototype ? prototypeCache : earlySingletonObjects;
-
-        if (!targetCache.containsKey(definition)) {
-            log.debug("put {} into cache", bean);
-            targetCache.put(definition, bean);
-            objectFactory.injectBean(bean);
-            targetCache.remove(definition);
-            log.debug("remove {} from cache", bean);
-        }
-    }
-
-    private Object proxyBean(Object bean, BeanDefinition definition) {
-        if (!enableProxy) return bean;
-
-        var keyType = definition.keyType;
-        var def = aopDefMap.get(keyType);
-        if (def == null) return bean;
-
-        var aopObj = createBean(def);
-        log.debug("will proxy bean: {} with {}", bean, aopObj);
-        return proxyFactory.makeProxy(bean, aopObj);
+    private void injectConfigObj() {
+        valuesFactory.setPropsValue(configObj);
+        objectFactory.injectBean(configObj);
     }
 
     private Object getMapper(Class<?> clazz) {
@@ -249,48 +275,6 @@ public class CrumbContainer implements BeanFactory, Container {
         var def = new BeanDefinition(clazz, mapper.getClass(), StringUtil.lowerFirst(clazz.getSimpleName()), ScopeType.SINGLETON);
         registerBean(def, mapper);
         return mapper;
-    }
-
-    private void injectConfigObj() {
-        valuesFactory.setPropsValue(configObj);
-        objectFactory.injectBean(configObj);
-    }
-
-    public <T> T getBean(Class<T> clazz) {
-        return (T) getBeanInside(clazz);
-    }
-
-    public Object getBean(String name) {
-        log.debug("want to get Bean which name: {}", name);
-        var def = getBeanDefinition(name);
-        if (def != null) {
-            return createBean(def);
-        } else {
-            var method = getBeanMethod(name);
-            if (method == null) throw new BeanNotFoundException(name);
-            return createBean(method);
-        }
-    }
-
-    public boolean registerBean(BeanDefinition definition, Object object) {
-        if (!singletonObjects.containsKey(definition) || canOverride)  {
-            singletonObjects.put(definition, object);
-            beanDefSet.add(definition);
-            log.debug("register Bean: {}, which definition: {}", object, definition);
-            return true;
-        } else return false;
-    }
-
-    public BeanDefinition getBeanDefinition(Class<?> clazz) {
-        return beanDefSet.stream().filter(def -> def.keyType == clazz).findFirst().orElse(null);
-    }
-
-    public BeanDefinition getBeanDefinition(String name) {
-        return beanDefSet.stream().filter(def -> def.name.equals(name)).findFirst().orElse(null);
-    }
-
-    public BeanDefinition[] getBeanDefinition(Predicate<BeanDefinition> predicate) {
-        return beanDefSet.stream().filter(predicate).toArray(BeanDefinition[]::new);
     }
 
     private Method getBeanMethod(Class<?> returnType) {
@@ -307,24 +291,66 @@ public class CrumbContainer implements BeanFactory, Container {
                 .orElse(null);
     }
 
-    public Set<BeanPostProcessor> getBeanPostProcessors() {
+    @Override
+    public final <T> T getBean(Class<T> clazz) {
+        return (T) getBeanInside(clazz);
+    }
+
+    @Override
+    public final Object getBean(String name) {
+        log.debug("want to get Bean which name: {}", name);
+        var def = getBeanDefinition(name);
+        if (def != null) {
+            return createBean(def);
+        } else {
+            var method = getBeanMethod(name);
+            if (method == null) throw new BeanNotFoundException(name);
+            return createBean(method);
+        }
+    }
+
+    @Override
+    public final boolean registerBean(BeanDefinition definition, Object object) {
+        if (!singletonObjects.containsKey(definition) || canOverride)  {
+            singletonObjects.put(definition, object);
+            beanDefSet.add(definition);
+            log.debug("register Bean: {}, which definition: {}", object, definition);
+            return true;
+        } else return false;
+    }
+
+    @Override
+    public final BeanDefinition getBeanDefinition(Class<?> clazz) {
+        return beanDefSet.stream().filter(def -> def.keyType == clazz).findFirst().orElse(null);
+    }
+
+    @Override
+    public final BeanDefinition getBeanDefinition(String name) {
+        return beanDefSet.stream().filter(def -> def.name.equals(name)).findFirst().orElse(null);
+    }
+
+    @Override
+    public final BeanDefinition[] getBeanDefinition(Predicate<BeanDefinition> predicate) {
+        return beanDefSet.stream().filter(predicate).toArray(BeanDefinition[]::new);
+    }
+
+    @Override
+    public final Set<BeanPostProcessor> getBeanPostProcessors() {
         return this.postProcessors;
     }
 
+    @Override
     public void logBeanDefs() {
         beanDefSet.forEach(System.out::println);
     }
 
-    public void setOverride(boolean canOverride) {
+    @Override
+    public final void setOverride(boolean canOverride) {
         this.canOverride = canOverride;
     }
 
-    public static void setLoggerLevel(Level level) {
-        Logger logger = (Logger) LoggerFactory.getLogger("com.cppsh1t.crumb");
-        logger.setLevel(level);
-    }
-
-    public void close() {
+    @Override
+    public final void close() {
         for(var pair : singletonObjects.entrySet()) {
             var def = pair.getKey();
             var bean = pair.getValue();
@@ -337,5 +363,9 @@ public class CrumbContainer implements BeanFactory, Container {
         beanMethods.clear();
         remainBeanMethods.clear();
         factoryBeanMap.clear();
+    }
+
+    public void logBanner() {
+        valuesFactory.logBanner();
     }
 }

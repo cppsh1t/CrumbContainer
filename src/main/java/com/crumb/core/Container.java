@@ -1,30 +1,38 @@
 package com.crumb.core;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
 import com.crumb.beanProcess.BeanPostProcessor;
 import com.crumb.definition.BeanDefinition;
+import org.slf4j.LoggerFactory;
 
 import java.util.Set;
 import java.util.function.Predicate;
 
 public interface Container {
 
-    public <T> T getBean(Class<T> clazz);
+    <T> T getBean(Class<T> clazz);
 
-    public Object getBean(String name);
+    Object getBean(String name);
 
-    public boolean registerBean(BeanDefinition definition, Object object);
+    boolean registerBean(BeanDefinition definition, Object object);
 
-    public BeanDefinition getBeanDefinition(Class<?> clazz);
+    BeanDefinition getBeanDefinition(Class<?> clazz);
 
-    public BeanDefinition getBeanDefinition(String name);
+    BeanDefinition getBeanDefinition(String name);
 
-    public BeanDefinition[] getBeanDefinition(Predicate<BeanDefinition> predicate);
+    BeanDefinition[] getBeanDefinition(Predicate<BeanDefinition> predicate);
 
-    public Set<BeanPostProcessor> getBeanPostProcessors();
+    Set<BeanPostProcessor> getBeanPostProcessors();
 
-    public void logBeanDefs();
+    void logBeanDefs();
 
-    public void setOverride(boolean canOverride);
+    void setOverride(boolean canOverride);
 
-    public void close();
+    void close();
+
+     static void setLoggerLevel(Level level) {
+        Logger logger = (Logger) LoggerFactory.getLogger("com.crumb");
+        logger.setLevel(level);
+    }
 }
