@@ -2,7 +2,7 @@
 
 这是一个小ioc框架， 主要是来测试我之前想的解决依赖的思路
 
-API基本和spring一样，但是只写了按class注入，所以使用起来非常残疾
+功能写的比较少
 
 ### Sample
 
@@ -10,10 +10,9 @@ API基本和spring一样，但是只写了按class注入，所以使用起来非
 public class MainTest {
 
     public static void main(String[] args) {
-        CrumbContainer.setLoggerLevel(Level.DEBUG);
-        var container = new CrumbContainer(AppConfig.class);
-        var foo = container.getBean(Foo.class);
-        foo.test();
+        Container.setLoggerLevel(Level.DEBUG);
+        var container = new EnhancedContainer(AppConfig.class);
+        container.getBean(SleepService.class).sleep();
     }
 }
 ```
@@ -26,26 +25,44 @@ public class MainTest {
 <dependency>
     <groupId>io.github.cppsh1t</groupId>
     <artifactId>crumbContainer</artifactId>
-    <version>0.1.7</version>
+    <version>0.1.8</version>
 </dependency>
 ```
 
 ### VM参数
 
-因为是使用cglib在Java17环境下实现AOP，需要加VM参数: --add-opens java.base/java.lang=ALL-UNNAMED
+因为是使用cglib在Java17环境下实现AOP，需要加VM参数: `--add-opens java.base/java.lang=ALL-UNNAMED`
 
 ### Logger
 
 用logback写了Logger，能看到依赖解决的过程，可以通过添加logback.xml修改，也可以通过下面的方法直接修改输出等级:
 
 ```java
-CrumbContainer.setLoggerLevel(Level.DEBUG);
+Container.setLoggerLevel(Level.DEBUG);
 ```
+
+### Banner
+
+启动时会输出banner，在resources里写一个banner.txt应该可以改
+
+### 创建Container
+
+```java
+Container container1 = new DefaultContainer(AppConfig.class);
+Container container2 = new EnhancedContainer(AppConfig.class);
+Container container3 = MainContainer.getContainer();
+//Container container3 = MainContainer.getContainer(DefaultContainer.class);
+```
+
+Container有两个实现，目前EnhancedContainer除了使用ClassGraph库进行Component扫描外和另外一个没什么不同。
+`MainContainer.getContainer()`会创建一个单例Container，并自动扫描到标记了`MainConfiguraion`的注解的类当作配置类生成Container，
+默认实现是EnhancedContainer，当使用以class作为参数的重载时，内部的Container就是参数的类型
 
 ### Bean
 
-Component标记类或者Bean标记方法，标记Autowired的构造函数优先调用
-如果想注册为其superClass，可以手动在Bean或Component的参数里指定:
+用Bean标记方法将返回值注册为单例
+如果想注册为其父类型，可以手动在Bean参数里指定:
+另外也可以通过name参数指定名字而非默认名字
 
 ```java
 @Component(IFoo.class)
@@ -55,21 +72,43 @@ public class Foo implements IFoo {
 }
 ```
 
+### Component
+
+Component和Bean基本一样
+```java
+@Component
+@Scope(ScopeType.PROTOTYPE)
+public class Stone {
+
+    @Autowired
+    private int weight;
+
+    public int getWeight() {
+        return weight;
+    }
+
+    public void setWeight(int weight) {
+        this.weight = weight;
+    }
+}
+```
+
 ### Inject
 
 属性注入和spring不大一样，不需要给setter加Autowired，容器会自动寻找对应名字的setter，找不到再使用字段注入
+在字段上进行注入时支持Autowired和Resource，一个是按类型，一个是按名字
 
 ### Init
 
-Bean生命周期的相关接口写的很少，BeanPostProcessor和Aware根本没写，有InitializingBean和DisposableBean
+相关的初始化接口和postProcessor和spring基本一样，postProcessor没写几个
 
 ### Values
 
-可以使用Values注解注入外部值，默认是application.yaml，可以通过下面的方法增加或者修改默认路径，只支持yaml格式:
+可以使用Value注解注入外部值，默认是application.yaml，可以通过下面的方法增加或者修改默认路径，只支持yaml格式:
 
 ```java
-PropFactory.setDefaultPath("defaultPath");
-PropFactory.addFilePath("newPath");
+DefaultValuesFactory.setDefaultPath("defaultPath");
+DefaultValuesFactory.addFilePath("newPath");
 ```
 
 ### AOP
@@ -159,8 +198,7 @@ getMapper:
 public class MainTest {
 
     public static void main(String[] args) {
-        CrumbContainer.setLoggerLevel(Level.DEBUG);
-        var container = new CrumbContainer(AppConfig.class);
+        var container = new EnhancedContainer(AppConfig.class);
         var mapper = container.getBean(TestMapper.class);
         mapper.selectStudents().forEach(System.out::println);
     }
