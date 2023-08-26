@@ -10,7 +10,7 @@ public class EnhancedContainer extends AbstractContainer{
     }
 
     @Override
-    protected void initContainerProp() {
+    protected void initContainerChildrenModules() {
         scanner = new ClassGraphBeanScanner();
         objectFactory = new DefaultObjectFactory(this::getBeanInside, this::getBean);
         valuesFactory = new DefaultValuesFactory();

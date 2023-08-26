@@ -17,7 +17,6 @@ import com.crumb.proxy.ProxyFactory;
 import com.crumb.util.ClassConverter;
 import com.crumb.util.ReflectUtil;
 import com.crumb.util.StringUtil;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.slf4j.LoggerFactory;
 
@@ -87,12 +86,13 @@ public class AbstractContainer implements Container{
         if (configClass.isAnnotationPresent(EnableAspectProxy.class)) {
             enableProxy = true;
         }
-        initContainerProp();
+        initContainerChildrenModules();
+        setContainerProps();
         logBanner();
         initContainer();
     }
 
-    protected void initContainerProp() {
+    protected void initContainerChildrenModules() {
         scanner = new DefaultBeanScanner();
         objectFactory = new DefaultObjectFactory(this::getBeanInside, this::getBean);
         valuesFactory = new DefaultValuesFactory();
@@ -100,6 +100,8 @@ public class AbstractContainer implements Container{
         lifeCycle = new DefaultBeanLifeCycle(valuesFactory::setPropsValue, this::injectBean,
                 this::proxyBean, this.postProcessors);
     }
+
+    protected void setContainerProps() {}
 
     private void initContainer() {
         processConfig();
