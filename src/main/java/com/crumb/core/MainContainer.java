@@ -40,9 +40,13 @@ public class MainContainer {
             // 扫描所有的类
             ScanResult scanResult = classGraph.scan();
             // 获取所有的类
-            var configClass = scanResult.getClassesWithAnnotation(MainConfiguration.class).get(0).loadClass();
+            Class<?> configClass;
+            try {
+                configClass = scanResult.getClassesWithAnnotation(MainConfiguration.class).get(0).loadClass();
+            } catch (IndexOutOfBoundsException e) {
+                throw new MainConfigurationNotFoundException();
+            }
 
-            if (configClass == null) throw new MainConfigurationNotFoundException();
             Constructor<? extends Container> con;
             try {
                 con = containerClass.getDeclaredConstructor(Class.class);
