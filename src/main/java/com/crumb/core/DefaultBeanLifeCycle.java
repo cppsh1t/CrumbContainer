@@ -52,7 +52,7 @@ public class DefaultBeanLifeCycle implements BeanLifeCycle {
         return proxyInstance;
     }
 
-    public void overLifeCycle(Object bean, String beanName) {
+    public void endLifeCycle(Object bean, String beanName) {
         if (!hasInitDesProcessor) {
             hasInitDesProcessor = true;
             this.desProcessors = processors.stream()

@@ -356,7 +356,7 @@ public class AbstractContainer implements Container{
         for(var pair : singletonObjects.entrySet()) {
             var def = pair.getKey();
             var bean = pair.getValue();
-            lifeCycle.overLifeCycle(bean, def.name);
+            lifeCycle.endLifeCycle(bean, def.name);
         }
 
         singletonObjects.clear();

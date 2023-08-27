@@ -6,5 +6,5 @@ public interface BeanLifeCycle {
 
     Object makeLifeCycle(Object origin, BeanDefinition definition);
 
-    void overLifeCycle(Object bean, String beanName);
+    void endLifeCycle(Object bean, String beanName);
 }
