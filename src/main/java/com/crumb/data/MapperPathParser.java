@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class MapperScanner {
+public class MapperPathParser {
 
     public static List<String> getMapperPaths(Class<?> configClass) {
         var list = new ArrayList<String>();

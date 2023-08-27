@@ -14,6 +14,10 @@ import java.util.Arrays;
 public class MainContainer {
     private static Container instance;
 
+    /**
+     * 获取单例容器，自动寻找标记了@MainConfiguration注解的配置类
+     * @return 单例容器
+     */
     public static Container getContainer() {
         if (instance == null) {
             // 创建一个ClassGraph对象
@@ -31,7 +35,12 @@ public class MainContainer {
         return instance;
     }
 
-    public static Container getContainer(Class<? extends Container> containerClass) {
+    /**
+     * 获取特定类型单例容器，自动寻找标记了@MainConfiguration注解的配置类
+     * @param containerClass 容器的类型
+     * @return 单例容器
+     */
+    public static Container getContainer(Class<? extends AbstractContainer> containerClass) {
         if (instance == null) {
             // 创建一个ClassGraph对象
             ClassGraph classGraph = new ClassGraph();

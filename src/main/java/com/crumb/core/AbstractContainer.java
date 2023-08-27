@@ -7,7 +7,7 @@ import com.crumb.annotation.Lazy;
 import com.crumb.annotation.Resource;
 import com.crumb.beanProcess.BeanPostProcessor;
 import com.crumb.builder.BeanDefinitionBuilder;
-import com.crumb.data.MapperScanner;
+import com.crumb.data.MapperPathParser;
 import com.crumb.definition.BeanDefinition;
 import com.crumb.definition.BeanJudge;
 import com.crumb.definition.ScopeType;
@@ -111,7 +111,7 @@ public class AbstractContainer implements Container{
 
     private void processConfig() {
         log.debug(BLUE + "start processing configuration" + RESET);
-        mapperPaths.addAll(MapperScanner.getMapperPaths(configClass));
+        mapperPaths.addAll(MapperPathParser.getMapperPaths(configClass));
 
         beanDefSet.addAll(scanner.getBeanDefinition(configClass));
         factoryBeanMap.putAll(scanner.getFactoryBeanDefinition(beanDefSet));
