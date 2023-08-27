@@ -65,10 +65,23 @@ Container有两个实现，目前EnhancedContainer除了使用ClassGraph库进�
 另外也可以通过name参数指定名字而非默认名字
 
 ```java
-@Component(IFoo.class)
-@Lazy
-public class Foo implements IFoo {
+@MainConfiguration
+@ComponentScan("com")
+@Configuration
+@EnableAspectProxy
+@MapperScan("com.mapper")
+public class AppConfig {
 
+    @Bean(name = "retardName")
+    @Lazy
+    public String getName() {
+        return "Xqc";
+    }
+
+    @Bean
+    public int getInt() {
+        return new Random().nextInt(30);
+    }
 }
 ```
 
