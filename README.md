@@ -61,8 +61,7 @@ Container有两个实现，目前EnhancedContainer除了使用ClassGraph库进�
 ### Bean
 
 用Bean标记方法将返回值注册为单例
-如果想注册为其父类型，可以手动在Bean参数里指定:
-另外也可以通过name参数指定名字而非默认名字
+如果想注册为其父类型，可以手动在Bean参数里指定，另外也可以通过name参数指定名字而非默认名字
 
 ```java
 @MainConfiguration
