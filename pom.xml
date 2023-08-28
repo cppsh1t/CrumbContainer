@@ -6,7 +6,7 @@
 
     <groupId>io.github.cppsh1t</groupId>
     <artifactId>crumbContainer</artifactId>
-    <version>0.1.9-SNAPSHOT</version>
+    <version>0.1.9</version>
     <name>crumbContainer</name>
     <description>a simple ioc container</description>
     <build>
