@@ -1,9 +1,6 @@
 package com.entity;
 
-import com.crumb.annotation.Component;
-import com.crumb.annotation.Lazy;
-import com.crumb.annotation.PostConstruct;
-import com.crumb.annotation.PreDestroy;
+import com.crumb.annotation.*;
 import com.crumb.beanProcess.DisposableBean;
 import com.crumb.beanProcess.InitializingBean;
 
@@ -11,7 +8,8 @@ import com.crumb.beanProcess.InitializingBean;
 @Lazy
 public class Foo implements InitializingBean, DisposableBean, IFoo {
 
-    public Foo() {
+    @Autowired
+    public Foo(Stone stone) {
         System.out.println("foo!");
     }
 

@@ -8,7 +8,6 @@ import com.crumb.beanProcess.DisposableBean;
 import com.crumb.beanProcess.InitializingBean;
 import com.crumb.definition.BeanDefinition;
 import com.crumb.exception.MethodRuleException;
-import com.crumb.proxy.ProxyObject;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
@@ -39,13 +38,13 @@ public class DefaultBeanLifeCycle implements BeanLifeCycle {
         var proxyInstance = proxyProvider.proxyBean(origin, definition);
         fieldsInjector.inject(proxyInstance, definition);
 
-        for(var processor : processors) {
+        for (var processor : processors) {
             proxyInstance = processor.postProcessBeforeInitialization(proxyInstance, beanName);
         }
 
         initBean(proxyInstance);
 
-        for(var processor : processors) {
+        for (var processor : processors) {
             proxyInstance = processor.postProcessAfterInitialization(proxyInstance, beanName);
         }
 
@@ -61,7 +60,7 @@ public class DefaultBeanLifeCycle implements BeanLifeCycle {
         }
 
         boolean needDes = true;
-        for(var des : desProcessors) {
+        for (var des : desProcessors) {
             if (!des.requiresDestruction(bean)) {
                 needDes = false;
                 break;
@@ -69,7 +68,7 @@ public class DefaultBeanLifeCycle implements BeanLifeCycle {
         }
 
         if (needDes) {
-            for(var des : desProcessors) {
+            for (var des : desProcessors) {
                 des.postProcessBeforeDestruction(bean, beanName);
             }
         }
@@ -78,13 +77,7 @@ public class DefaultBeanLifeCycle implements BeanLifeCycle {
     }
 
     private void initBean(Object bean) {
-        Class<?> clazz;
-
-        if (bean instanceof ProxyObject) {
-            clazz = bean.getClass().getSuperclass();
-        } else {
-            clazz = bean.getClass();
-        }
+        Class<?> clazz = bean.getClass();
 
         var postConstructMethod = Arrays.stream(clazz.getDeclaredMethods())
                 .filter(method -> method.isAnnotationPresent(PostConstruct.class))
@@ -105,13 +98,7 @@ public class DefaultBeanLifeCycle implements BeanLifeCycle {
     }
 
     private void destroyBean(Object bean) {
-        Class<?> clazz;
-
-        if (bean instanceof ProxyObject) {
-            clazz = bean.getClass().getSuperclass();
-        } else {
-            clazz = bean.getClass();
-        }
+        Class<?> clazz = bean.getClass();
 
         var preDestroyMethod = Arrays.stream(clazz.getDeclaredMethods())
                 .filter(method -> method.isAnnotationPresent(PreDestroy.class))

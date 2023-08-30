@@ -6,7 +6,7 @@
 
     <groupId>io.github.cppsh1t</groupId>
     <artifactId>crumbContainer</artifactId>
-    <version>0.1.9</version>
+    <version>0.1.10-SNAPSHOT</version>
     <name>crumbContainer</name>
     <description>a simple ioc container</description>
     <build>
@@ -111,12 +111,6 @@
         </dependency>
 
         <dependency>
-            <groupId>cglib</groupId>
-            <artifactId>cglib</artifactId>
-            <version>3.3.0</version>
-        </dependency>
-
-        <dependency>
             <groupId>org.mybatis</groupId>
             <artifactId>mybatis</artifactId>
             <version>3.5.7</version>
@@ -144,6 +138,12 @@
             <groupId>io.github.classgraph</groupId>
             <artifactId>classgraph</artifactId>
             <version>4.8.133</version>
+        </dependency>
+
+        <dependency>
+            <groupId>net.bytebuddy</groupId>
+            <artifactId>byte-buddy</artifactId>
+            <version>LATEST</version>
         </dependency>
 
     </dependencies>
