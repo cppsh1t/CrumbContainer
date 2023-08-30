@@ -111,4 +111,12 @@ public class ReflectUtil {
                 .findFirst().orElse(null);
     }
 
+    public static String getTopLevelPackage(String className) {
+        int firstDotIndex = className.indexOf(".");
+        if (firstDotIndex != -1) {
+            return className.substring(0, firstDotIndex);
+        }
+        return "";
+    }
+
 }

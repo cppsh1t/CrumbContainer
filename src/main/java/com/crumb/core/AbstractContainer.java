@@ -266,17 +266,21 @@ public class AbstractContainer implements Container{
         objectFactory.injectBean(configObj);
     }
 
-    private Object getMapper(Class<?> clazz) {
+    protected Object getMapper(Class<?> clazz) {
         log.debug("want to get Mapper which class: {}", clazz.getName());
         var sqlSessionFactory = getBean(SqlSessionFactory.class);
         if (!hasAddMappers) {
-            mapperPaths.forEach(sqlSessionFactory.getConfiguration()::addMappers);
-            hasAddMappers = true;
+            loadMappers(sqlSessionFactory);
         }
         var mapper = sqlSessionFactory.openSession(true).getMapper(clazz);
         var def = new BeanDefinition(clazz, mapper.getClass(), StringUtil.lowerFirst(clazz.getSimpleName()), ScopeType.SINGLETON);
         registerBean(def, mapper);
         return mapper;
+    }
+
+    protected void loadMappers(SqlSessionFactory sqlSessionFactory) {
+        mapperPaths.forEach(sqlSessionFactory.getConfiguration()::addMappers);
+        hasAddMappers = true;
     }
 
     private Method getBeanMethod(Class<?> returnType) {

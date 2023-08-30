@@ -12,4 +12,6 @@ public @interface PutMapping {
     String value();
 
     String[] params() default {};
+
+    String produces() default "";
 }

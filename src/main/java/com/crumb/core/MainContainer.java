@@ -30,7 +30,7 @@ public class MainContainer {
             var configClass = scanResult.getClassesWithAnnotation(MainConfiguration.class).get(0).loadClass();
 
             if (configClass == null) throw new MainConfigurationNotFoundException();
-            instance = new EnhancedContainer(configClass);
+            instance = new AutoContainer(configClass);
         }
         return instance;
     }

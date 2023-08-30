@@ -24,7 +24,7 @@ public class DefaultProxyFactory implements ProxyFactory {
     }
 
     @Override
-    public Object  makeProxy(Object origin, Object aopObj) {
+    public Object makeProxy(Object origin, Object aopObj) {
         Class<?> clazz = origin.getClass();
         Class<?> proxyType = buddy.subclass(clazz)
                 .method(ElementMatchers.any())
@@ -34,29 +34,33 @@ public class DefaultProxyFactory implements ProxyFactory {
         var autoCon = Arrays.stream(clazz.getDeclaredConstructors())
                 .filter(con -> con.isAnnotationPresent(Autowired.class))
                 .findFirst().orElse(null);
-
-        return createProxyInstance(proxyType, autoCon);
+        if (autoCon != null) {
+            var paramTypes = autoCon.getParameterTypes();
+            return createProxyInstance(proxyType, paramTypes);
+        } else {
+            return createProxyInstance(proxyType, null);
+        }
     }
 
-    private Object createProxyInstance(Class<?> clazz, Constructor<?> autoCon) {
-
-        if (autoCon != null) {
-            var paramTypes = Arrays.stream(autoCon.getParameterTypes())
-                    .map(ClassConverter::convertPrimitiveType).toArray(Class<?>[]::new);
-            var params = Arrays.stream(paramTypes)
-                    .map(objectGetterByType::getObject).toArray();
-            var instance = ReflectUtil.createInstance(autoCon, params);
-            log.debug("create the proxyInstance: {}", instance);
-            return instance;
+    private Object createProxyInstance(Class<?> clazz, Class<?>[] paramTypes) {
+        if (paramTypes == null) {
+            try {
+                var instance = ReflectUtil.createInstance(clazz);
+                log.debug("create the proxyInstance: {}", instance);
+                return instance;
+            } catch (RuntimeException e) {
+                throw new MethodRuleException("Missing constructors available for proxy use");
+            }
         }
 
-        try {
-            var instance = ReflectUtil.createInstance(clazz);
-            log.debug("create the proxyInstance: {}", instance);
-            return instance;
-        } catch (RuntimeException e) {
-            throw new MethodRuleException("Missing constructors available for proxy use");
-        }
+        var autoCon = Arrays.stream(clazz.getDeclaredConstructors())
+                .filter(c -> Arrays.equals(c.getParameterTypes(), paramTypes)).findFirst().orElseThrow();
+        var params = Arrays.stream(paramTypes)
+                .map(objectGetterByType::getObject).toArray();
+        var instance = ReflectUtil.createInstance(autoCon, params);
+        log.debug("create the proxyInstance: {}", instance);
+        return instance;
+
 
     }
 

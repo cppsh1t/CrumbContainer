@@ -12,4 +12,6 @@ public @interface GetMapping {
     String value();
 
     String[] params() default {};
+
+    String produces() default "";
 }

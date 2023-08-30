@@ -9,10 +9,8 @@ import javax.sql.DataSource;
 import java.util.Random;
 
 @MainConfiguration
-@ComponentScan("com")
 @Configuration
 @EnableAspectProxy
-@MapperScan("com.mapper")
 public class AppConfig {
 
     @Bean(name = "retardName")

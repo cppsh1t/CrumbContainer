@@ -12,4 +12,6 @@ public @interface RequestMapping {
     String value();
 
     String[] params() default {};
+
+    String produces() default "";
 }

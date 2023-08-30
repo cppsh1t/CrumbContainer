@@ -12,4 +12,6 @@ public @interface PostMapping {
     String value();
 
     String[] params() default {};
+
+    String produces() default "";
 }
