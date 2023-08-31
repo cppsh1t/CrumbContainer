@@ -35,6 +35,8 @@ public class MainTest {
     public static void aopTest() {
         var foo = container.getBean(IFoo.class);
         foo.test();
+        var inside = ((ProxyObject) foo).getOrigin();
+        System.out.println(inside);
     }
 
 }

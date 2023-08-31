@@ -220,9 +220,6 @@ public class MainTest {
 }
 ```
 
-### BUG
-
-因为0.1.10之后用Byte Buddy实现AOP，之前实现接口的方法不好用了，无法把代理对象转换成ProxyObject对象调用方法getOrigin拿到原始对象
 
 
 
