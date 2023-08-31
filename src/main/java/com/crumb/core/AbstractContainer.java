@@ -1,10 +1,7 @@
 package com.crumb.core;
 
 import ch.qos.logback.classic.Logger;
-import com.crumb.annotation.Autowired;
-import com.crumb.annotation.EnableAspectProxy;
-import com.crumb.annotation.Lazy;
-import com.crumb.annotation.Resource;
+import com.crumb.annotation.*;
 import com.crumb.beanProcess.BeanPostProcessor;
 import com.crumb.builder.BeanDefinitionBuilder;
 import com.crumb.data.MapperPathParser;
@@ -30,7 +27,7 @@ import static com.crumb.misc.Color.*;
 import static com.crumb.misc.Color.BLUE;
 
 
-public class AbstractContainer implements Container{
+public class AbstractContainer implements Container {
 
     protected Logger log = (Logger) LoggerFactory.getLogger(this.getClass());
 
@@ -83,13 +80,22 @@ public class AbstractContainer implements Container{
 
     public AbstractContainer(Class<?> configClass) {
         this.configClass = configClass;
-        if (configClass.isAnnotationPresent(EnableAspectProxy.class)) {
-            enableProxy = true;
-        }
+        parseConfigClass();
         initContainerChildrenModules();
         setContainerProps();
         logBanner();
         initContainer();
+    }
+
+    protected void parseConfigClass() {
+        if (configClass.isAnnotationPresent(EnableAspectProxy.class)) {
+            enableProxy = true;
+        }
+
+        if (configClass.isAnnotationPresent(ValuesScans.class)) {
+            var arr = configClass.getAnnotation(ValuesScans.class).value();
+            DefaultValuesFactory.addFilePath(arr);
+        }
     }
 
     protected void initContainerChildrenModules() {
@@ -101,7 +107,8 @@ public class AbstractContainer implements Container{
                 this::proxyBean, this.postProcessors);
     }
 
-    protected void setContainerProps() {}
+    protected void setContainerProps() {
+    }
 
     private void initContainer() {
         processConfig();
@@ -145,11 +152,11 @@ public class AbstractContainer implements Container{
             log.debug("proactively created the processor: {}", processor);
         }
 
-        for(var def : remainBeanDefSet) {
+        for (var def : remainBeanDefSet) {
             var component = createBean(def);
             log.debug("proactively created the component: {}", component);
         }
-        for(var method : remainBeanMethods) {
+        for (var method : remainBeanMethods) {
             var component = createBean(method);
             log.debug("proactively created the component: {}", component);
         }
@@ -168,8 +175,7 @@ public class AbstractContainer implements Container{
             return createBean(definition);
         } else {
             var bean = createBean(finalClazz);
-            if (bean == null)
-            {
+            if (bean == null) {
                 bean = Optional.ofNullable(createBeanFromFactoryBean(finalClazz))
                         .orElseThrow(() -> new BeanNotFoundException(finalClazz));
             }
@@ -317,7 +323,7 @@ public class AbstractContainer implements Container{
 
     @Override
     public final boolean registerBean(BeanDefinition definition, Object object) {
-        if (!singletonObjects.containsKey(definition) || canOverride)  {
+        if (!singletonObjects.containsKey(definition) || canOverride) {
             singletonObjects.put(definition, object);
             beanDefSet.add(definition);
             log.debug("register Bean: {}, which definition: {}", object, definition);
@@ -357,7 +363,7 @@ public class AbstractContainer implements Container{
 
     @Override
     public final void close() {
-        for(var pair : singletonObjects.entrySet()) {
+        for (var pair : singletonObjects.entrySet()) {
             var def = pair.getKey();
             var bean = pair.getValue();
             lifeCycle.endLifeCycle(bean, def.name);

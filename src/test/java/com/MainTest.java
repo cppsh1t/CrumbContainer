@@ -8,6 +8,7 @@ import com.crumb.core.MainContainer;
 import com.crumb.proxy.ProxyObject;
 import com.entity.Foo;
 import com.entity.IFoo;
+import com.entity.Stone;
 import com.mapper.TestMapper;
 
 import java.util.Arrays;
@@ -19,12 +20,12 @@ public class MainTest {
 
 
     static {
-        Container.setLoggerLevel(Level.INFO);
+        Container.setLoggerLevel(Level.DEBUG);
         container = MainContainer.getContainer();
     }
 
     public static void main(String[] args) {
-        aopTest();
+        normalTest();
     }
 
     public static void dataTest() {
@@ -37,6 +38,11 @@ public class MainTest {
         foo.test();
         var inside = ((ProxyObject) foo).getOrigin();
         System.out.println(inside);
+    }
+
+    public static void normalTest() {
+        var stone = container.getBean(Stone.class);
+        System.out.println(stone.getWeight());
     }
 
 }

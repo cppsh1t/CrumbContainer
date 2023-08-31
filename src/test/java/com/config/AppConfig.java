@@ -1,11 +1,6 @@
 package com.config;
 
 import com.crumb.annotation.*;
-import com.crumb.data.MapperScan;
-import com.crumb.data.SqlSessionFactoryBean;
-import com.zaxxer.hikari.HikariDataSource;
-
-import javax.sql.DataSource;
 import java.util.Random;
 
 @MainConfiguration
