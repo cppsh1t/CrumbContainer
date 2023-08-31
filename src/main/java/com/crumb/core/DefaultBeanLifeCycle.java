@@ -8,6 +8,7 @@ import com.crumb.beanProcess.DisposableBean;
 import com.crumb.beanProcess.InitializingBean;
 import com.crumb.definition.BeanDefinition;
 import com.crumb.exception.MethodRuleException;
+import com.crumb.proxy.ProxyObject;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
@@ -77,7 +78,13 @@ public class DefaultBeanLifeCycle implements BeanLifeCycle {
     }
 
     private void initBean(Object bean) {
-        Class<?> clazz = bean.getClass();
+        Class<?> clazz;
+
+        if (bean instanceof ProxyObject) {
+            clazz = bean.getClass().getSuperclass();
+        } else {
+            clazz = bean.getClass();
+        }
 
         var postConstructMethod = Arrays.stream(clazz.getDeclaredMethods())
                 .filter(method -> method.isAnnotationPresent(PostConstruct.class))
@@ -98,7 +105,13 @@ public class DefaultBeanLifeCycle implements BeanLifeCycle {
     }
 
     private void destroyBean(Object bean) {
-        Class<?> clazz = bean.getClass();
+        Class<?> clazz;
+
+        if (bean instanceof ProxyObject) {
+            clazz = bean.getClass().getSuperclass();
+        } else {
+            clazz = bean.getClass();
+        }
 
         var preDestroyMethod = Arrays.stream(clazz.getDeclaredMethods())
                 .filter(method -> method.isAnnotationPresent(PreDestroy.class))

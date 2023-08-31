@@ -26,6 +26,7 @@ public class DefaultProxyFactory implements ProxyFactory {
     public Object makeProxy(Object origin, Object aopObj) {
         Class<?> clazz = origin.getClass();
         Class<?> proxyType = buddy.subclass(clazz)
+                .implement(ProxyObject.class)
                 .method(ElementMatchers.any())
                 .intercept(MethodDelegation.to(new GeneralInterceptor(origin, aopObj)))
                 .make().load(getClass().getClassLoader()).getLoaded();
