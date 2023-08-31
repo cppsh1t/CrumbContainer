@@ -25,7 +25,7 @@ public class MainTest {
     }
 
     public static void main(String[] args) {
-        normalTest();
+        aopTest();
     }
 
     public static void dataTest() {
