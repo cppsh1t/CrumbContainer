@@ -6,4 +6,8 @@ public interface ValuesFactory {
 
     void setPropsValue(Object bean);
 
+    Object getPropValue(String names);
+
+    Object getPropValueNoThrow(String names);
+
 }

@@ -8,6 +8,7 @@ import com.crumb.core.EnhancedContainer;
 import com.crumb.core.MainContainer;
 import com.crumb.util.ReflectUtil;
 import com.entity.IFoo;
+import com.mapper.TestMapper;
 import com.service.SleepService;
 
 
@@ -16,11 +17,9 @@ import com.service.SleepService;
 public class MainTest {
 
     public static void main(String[] args) {
-        Container.setLoggerLevel(Level.INFO);
+//        Container.setLoggerLevel(Level.DEBUG);
         var container = MainContainer.getContainer();
-        var foo =  container.getBean(IFoo.class);
-        foo.test();
-        System.out.println(foo);
-        container.close();
+        var mapper = container.getBean(TestMapper.class);
+        mapper.selectStudents().forEach(System.out::println);
     }
 }

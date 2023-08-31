@@ -11,4 +11,6 @@
     <root level="INFO">
         <appender-ref ref="CONSOLE"/>
     </root>
+
+    <logger name="org.apache.ibatis.io.ResolverUtil" level="OFF" />
 </configuration>

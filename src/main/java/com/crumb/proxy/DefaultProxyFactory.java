@@ -3,14 +3,13 @@ package com.crumb.proxy;
 import com.crumb.annotation.Autowired;
 import com.crumb.core.ObjectGetterByType;
 import com.crumb.exception.MethodRuleException;
-import com.crumb.util.ClassConverter;
 import com.crumb.util.ReflectUtil;
 import lombok.extern.slf4j.Slf4j;
 import net.bytebuddy.ByteBuddy;
 import net.bytebuddy.implementation.MethodDelegation;
 import net.bytebuddy.matcher.ElementMatchers;
 
-import java.lang.reflect.Constructor;
+
 import java.util.Arrays;
 
 @Slf4j

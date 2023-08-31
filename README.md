@@ -25,13 +25,14 @@ public class MainTest {
 <dependency>
     <groupId>io.github.cppsh1t</groupId>
     <artifactId>crumbContainer</artifactId>
-    <version>0.1.8</version>
+    <version>0.1.10</version>
 </dependency>
 ```
 
 ### VM参数
 
-因为是使用cglib在Java17环境下实现AOP，需要加VM参数: `--add-opens java.base/java.lang=ALL-UNNAMED`
+0.1.10之前的版本是使用cglib实现AOP，因为高版本JDK的兼容问题，需要加VM参数: `--add-opens java.base/java.lang=ALL-UNNAMED`
+0.1.10之后替换成了Byte Buddy实现
 
 ### Logger
 
@@ -50,13 +51,15 @@ Container.setLoggerLevel(Level.DEBUG);
 ```java
 Container container1 = new DefaultContainer(AppConfig.class);
 Container container2 = new EnhancedContainer(AppConfig.class);
-Container container3 = MainContainer.getContainer();
-//Container container3 = MainContainer.getContainer(DefaultContainer.class);
+Container container2 = new AutoContainer(AppConfig.class);
+Container container4 = MainContainer.getContainer();
+//Container container4 = MainContainer.getContainer(DefaultContainer.class);
 ```
 
-Container有两个实现，目前EnhancedContainer除了使用ClassGraph库进行Component扫描外和另外一个没什么不同。
+Container有3个实现，DefaultContainer使用我自己写的方法扫描Component，其他几个用的是ClassGraph库
+AutoContainer的配置不需要@ComponentScan和@MapperScan，容器会自动从配置类的最顶级包名查找
 `MainContainer.getContainer()`会创建一个单例Container，并自动扫描到标记了`MainConfiguraion`的注解的类当作配置类生成Container，
-默认实现是EnhancedContainer，当使用以class作为参数的重载时，内部的Container就是参数的类型
+默认实现是AutoContainer，当使用以class作为参数的重载时，内部的Container就是参数的类型
 
 ### Bean
 
@@ -217,6 +220,9 @@ public class MainTest {
 }
 ```
 
+### BUG
+
+因为0.1.10之后用Byte Buddy实现AOP，之前实现接口的方法不好用了，无法把代理对象转换成ProxyObject对象调用方法getOrigin拿到原始对象
 
 
 
