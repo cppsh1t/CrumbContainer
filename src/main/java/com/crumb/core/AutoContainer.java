@@ -3,9 +3,9 @@ package com.crumb.core;
 import com.crumb.data.SqlSessionFactoryBean;
 import com.crumb.definition.BeanDefinition;
 import com.crumb.definition.ScopeType;
+import com.crumb.mail.MailSender;
 import com.crumb.proxy.DefaultProxyFactory;
 import com.crumb.util.ReflectUtil;
-import com.crumb.util.StringUtil;
 import com.zaxxer.hikari.HikariDataSource;
 import org.apache.ibatis.session.SqlSessionFactory;
 
@@ -40,23 +40,36 @@ public class AutoContainer extends AbstractContainer{
             registerBean(sessionDef, sessionFactoryBean);
         }
 
+        var mailSender = makeInsideMailSender();
+        if (mailSender != null) {
+            var mailSenderDef = new BeanDefinition(MailSender.class, MailSender.class, "mailSender", ScopeType.SINGLETON);
+            registerBean(mailSenderDef, mailSender);
+        }
+
+    }
+
+    @Override
+    protected void loadMappers(SqlSessionFactory sqlSessionFactory) {
+        String packName = ReflectUtil.getTopLevelPackage(configClass.getPackageName());
+        sqlSessionFactory.getConfiguration().addMappers(packName);
+        hasAddMappers = true;
     }
 
     private DataSource makeInsideDataSource() {
         HikariDataSource dataSource = new HikariDataSource();
-        var jdbcUrl = (String) valuesFactory.getPropValueNoThrow("crumb.data.jdbcUrl");
+        var jdbcUrl = (String) valuesFactory.getPropValueNoThrow("crumb.datasource.jdbcUrl");
         if (jdbcUrl == null) {
             return null;
         } else {
             dataSource.setJdbcUrl(jdbcUrl);
         }
-        var username = (String) valuesFactory.getPropValueNoThrow("crumb.data.username");
+        var username = (String) valuesFactory.getPropValueNoThrow("crumb.datasource.username");
         if (username != null) {
             dataSource.setUsername(username);
         } else {
             return null;
         }
-        var password = (String) valuesFactory.getPropValueNoThrow("crumb.data.password");
+        var password = (String) valuesFactory.getPropValueNoThrow("crumb.datasource.password");
         if (password != null) {
             dataSource.setPassword(password);
         } else {
@@ -72,10 +85,21 @@ public class AutoContainer extends AbstractContainer{
         return bean;
     }
 
-    @Override
-    protected void loadMappers(SqlSessionFactory sqlSessionFactory) {
-        String packName = ReflectUtil.getTopLevelPackage(configClass.getPackageName());
-        sqlSessionFactory.getConfiguration().addMappers(packName);
-        hasAddMappers = true;
+    private MailSender makeInsideMailSender() {
+        var host = (String) valuesFactory.getPropValueNoThrow("crumb.mail.host");
+        if (host == null) return null;
+
+        var username = (String) valuesFactory.getPropValueNoThrow("crumb.mail.username");
+        if (username == null) return null;
+
+        var password = (String) valuesFactory.getPropValueNoThrow("crumb.mail.password");
+        if (password == null) return null;
+
+        var port = (String) valuesFactory.getPropValueNoThrow("crumb.mail.port");
+        if (port == null) {
+            return new MailSender(host, username, password);
+        } else {
+            return new MailSender(host, username, password, port);
+        }
     }
 }

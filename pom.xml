@@ -6,7 +6,7 @@
 
     <groupId>io.github.cppsh1t</groupId>
     <artifactId>crumbContainer</artifactId>
-    <version>0.1.10</version>
+    <version>0.1.11-SNAPSHOT</version>
     <name>crumbContainer</name>
     <description>a simple ioc container</description>
     <build>
@@ -144,6 +144,12 @@
             <groupId>net.bytebuddy</groupId>
             <artifactId>byte-buddy</artifactId>
             <version>LATEST</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.sun.mail</groupId>
+            <artifactId>javax.mail</artifactId>
+            <version>1.6.2</version>
         </dependency>
 
     </dependencies>

@@ -94,7 +94,7 @@ public class AbstractContainer implements Container {
 
         if (configClass.isAnnotationPresent(ValuesScans.class)) {
             var arr = configClass.getAnnotation(ValuesScans.class).value();
-            DefaultValuesFactory.addFilePath(arr);
+            ValuesFactory.addFilePath(arr);
         }
     }
 
@@ -319,6 +319,11 @@ public class AbstractContainer implements Container {
             if (method == null) throw new BeanNotFoundException(name);
             return createBean(method);
         }
+    }
+
+    @Override
+    public Object getFromValues(String key) {
+        return valuesFactory.getPropValueNoThrow(key);
     }
 
     @Override

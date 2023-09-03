@@ -27,6 +27,13 @@ public interface Container {
     Object getBean(String name);
 
     /**
+     * 从容器的ValuesFactory取出配置文件读取的值
+     * @param key 属性名字
+     * @return 对应值
+     */
+    Object getFromValues(String key);
+
+    /**
      * 注册单例Bean
      * @param definition 注册的BeanDefinition
      * @param object 注册的单例

@@ -3,6 +3,7 @@ package com.entity;
 import com.crumb.annotation.Autowired;
 import com.crumb.annotation.Component;
 import com.crumb.annotation.Scope;
+import com.crumb.annotation.Value;
 import com.crumb.definition.ScopeType;
 
 @Component
