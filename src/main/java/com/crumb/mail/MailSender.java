@@ -43,7 +43,7 @@ public class MailSender {
     }
 
     public void send(Message message) {
-        if (message instanceof CrumbMailMessage mailMessage) {
+        if (message instanceof MailMessageSessionSetter mailMessage) {
             mailMessage.setSession(session);
         }
 
@@ -54,7 +54,7 @@ public class MailSender {
         }
     }
 
-    public void send(SimpleMailMessage message) {
+    public void send(CrumbMailMessage message) {
         message.setSession(session);
         var from = message.getFrom();
         if (from == null || from.length == 0) {

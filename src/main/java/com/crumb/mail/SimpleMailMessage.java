@@ -8,11 +8,10 @@ import javax.mail.MessagingException;
 import javax.mail.Session;
 import javax.mail.internet.InternetAddress;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Objects;
 
 
-public class SimpleMailMessage implements CrumbMailMessage{
+public class SimpleMailMessage implements CrumbMailMessage {
 
     private final MailMessage message = new MailMessage();
 
@@ -21,10 +20,12 @@ public class SimpleMailMessage implements CrumbMailMessage{
         message.setSession(session);
     }
 
+    @Override
     public MailMessage getMailMessage() {
         return this.message;
     }
 
+    @Override
     public Address[] getFrom() {
         try {
             return message.getFrom();
@@ -34,6 +35,7 @@ public class SimpleMailMessage implements CrumbMailMessage{
         }
     }
 
+    @Override
     public void setFrom(String from) {
         try {
             message.setFrom(from);
@@ -42,6 +44,7 @@ public class SimpleMailMessage implements CrumbMailMessage{
         }
     }
 
+    @Override
     public void setTo(String to) {
         try {
             message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(to));
@@ -50,6 +53,7 @@ public class SimpleMailMessage implements CrumbMailMessage{
         }
     }
 
+    @Override
     public void setTo(String... to) {
         var addresses = Arrays.stream(to).map(MailUtil::makeInternetAddress)
                 .filter(Objects::nonNull).toArray(InternetAddress[]::new);
@@ -60,6 +64,7 @@ public class SimpleMailMessage implements CrumbMailMessage{
         }
     }
 
+    @Override
     public void addTo(String to) {
         try {
             message.addRecipients(Message.RecipientType.TO, InternetAddress.parse(to));
@@ -68,6 +73,7 @@ public class SimpleMailMessage implements CrumbMailMessage{
         }
     }
 
+    @Override
     public void addTo(String... to) {
         var addresses = Arrays.stream(to).map(MailUtil::makeInternetAddress)
                 .filter(Objects::nonNull).toArray(InternetAddress[]::new);
@@ -79,6 +85,7 @@ public class SimpleMailMessage implements CrumbMailMessage{
         }
     }
 
+    @Override
     public void setSubject(String subject) {
         try {
             message.setSubject(subject);
@@ -87,6 +94,7 @@ public class SimpleMailMessage implements CrumbMailMessage{
         }
     }
 
+    @Override
     public void setText(String text) {
         try {
             message.setText(text);

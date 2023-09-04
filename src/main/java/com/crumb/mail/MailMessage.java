@@ -5,7 +5,7 @@ import javax.mail.*;
 import javax.mail.internet.MimeMessage;
 
 
-public class MailMessage extends MimeMessage implements CrumbMailMessage{
+public class MailMessage extends MimeMessage implements MailMessageSessionSetter {
 
     public MailMessage() {
         super((Session) null);
