@@ -139,7 +139,7 @@ public class TransactionInterceptor {
             tranSession.commit();
         } catch (Exception exception) {
             tranSession.rollback();
-            log.debug("An exception: {} occurred, and it has been automatically rolled back", exception.toString());
+            log.debug("An exception: {} occurred, and it has been automatically rolled back", exception.getCause().getClass());
         }
 
         for (int i = 0; i < mapperFields.size(); i++) {

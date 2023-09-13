@@ -6,6 +6,7 @@ import com.crumb.web.Service;
 import com.entity.Student;
 import com.mapper.TestMapper;
 
+import java.sql.SQLException;
 import java.util.List;
 
 @Service
@@ -31,6 +32,9 @@ public class StudentServiceImpl implements StudentService {
     }
 
     private void getException() {
-        throw new RuntimeException();
+        class MySqlException extends RuntimeException {
+
+        }
+        throw new MySqlException();
     }
 }

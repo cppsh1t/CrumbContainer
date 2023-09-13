@@ -61,8 +61,7 @@ public class MainTest {
 
     public static void tranTest() {
         var service = container.getBean(StudentService.class);
-        System.out.println(((StudentServiceImpl) service).getMapper());
-//        service.selectAll().forEach(System.out::println);
+        service.selectAll().forEach(System.out::println);
         service.addStudent(new Student(24, "男", "牢大"));
         service.selectAll().forEach(System.out::println);
     }
