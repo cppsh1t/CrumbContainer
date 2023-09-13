@@ -5,13 +5,14 @@ import com.crumb.definition.BeanDefinition;
 import com.crumb.definition.ScopeType;
 import com.crumb.mail.MailSender;
 import com.crumb.proxy.DefaultProxyFactory;
+import com.crumb.proxy.TransactionProxyFactory;
 import com.crumb.util.ReflectUtil;
 import com.zaxxer.hikari.HikariDataSource;
 import org.apache.ibatis.session.SqlSessionFactory;
 
 import javax.sql.DataSource;
 
-public class AutoContainer extends AbstractContainer{
+public class AutoContainer extends EnhancedContainer{
 
     public AutoContainer(Class<?> configClass) {
         super(configClass);
@@ -22,7 +23,7 @@ public class AutoContainer extends AbstractContainer{
         scanner = new AutoBeanScanner();
         objectFactory = new DefaultObjectFactory(this::getBeanInside, this::getBean);
         valuesFactory = new DefaultValuesFactory();
-        proxyFactory = new DefaultProxyFactory(this::getBeanInside);
+        proxyFactory = new TransactionProxyFactory(this::getBeanInside);
         lifeCycle = new DefaultBeanLifeCycle(valuesFactory::setPropsValue, this::injectBean,
                 this::proxyBean, this.postProcessors);
     }
@@ -49,10 +50,13 @@ public class AutoContainer extends AbstractContainer{
     }
 
     @Override
-    protected void loadMappers(SqlSessionFactory sqlSessionFactory) {
-        String packName = ReflectUtil.getTopLevelPackage(configClass.getPackageName());
-        sqlSessionFactory.getConfiguration().addMappers(packName);
-        hasAddMappers = true;
+    protected void loadMappers() {
+        if (!hasAddMappers) {
+            var sqlSessionFactory = getBean(SqlSessionFactory.class);
+            String packName = ReflectUtil.getTopLevelPackage(configClass.getPackageName());
+            sqlSessionFactory.getConfiguration().addMappers(packName);
+            hasAddMappers = true;
+        }
     }
 
     private DataSource makeInsideDataSource() {

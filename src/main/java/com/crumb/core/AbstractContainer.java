@@ -4,6 +4,7 @@ import ch.qos.logback.classic.Logger;
 import com.crumb.annotation.*;
 import com.crumb.beanProcess.BeanPostProcessor;
 import com.crumb.builder.BeanDefinitionBuilder;
+import com.crumb.data.EnableTransactionManagement;
 import com.crumb.data.MapperPathParser;
 import com.crumb.definition.BeanDefinition;
 import com.crumb.definition.BeanJudge;
@@ -35,6 +36,7 @@ public class AbstractContainer implements Container {
     protected boolean canOverride = false;
     protected boolean enableProxy = false;
     protected boolean hasAddMappers = false;
+    protected boolean enableTransactionManage = false;
     //endregion
 
     //region Configuration
@@ -92,6 +94,10 @@ public class AbstractContainer implements Container {
             enableProxy = true;
         }
 
+        if (configClass.isAnnotationPresent(EnableTransactionManagement.class)) {
+            enableTransactionManage = true;
+        }
+
         if (configClass.isAnnotationPresent(ValuesScans.class)) {
             var arr = configClass.getAnnotation(ValuesScans.class).value();
             ValuesFactory.addFilePath(arr);
@@ -113,10 +119,11 @@ public class AbstractContainer implements Container {
     private void initContainer() {
         processConfig();
         createComponents();
+        loadMappers();
         log.info(GREEN + "Successfully started crumbContainer" + RESET);
     }
 
-    private void processConfig() {
+    protected void processConfig() {
         log.debug(BLUE + "start processing configuration" + RESET);
         mapperPaths.addAll(MapperPathParser.getMapperPaths(configClass));
 
@@ -143,7 +150,7 @@ public class AbstractContainer implements Container {
         log.debug(BLUE + "end processing configuration" + RESET);
     }
 
-    private void createComponents() {
+    protected void createComponents() {
         log.debug(BLUE + "start creating components" + RESET);
 
         for (var def : processorDefs) {
@@ -183,7 +190,7 @@ public class AbstractContainer implements Container {
         }
     }
 
-    private Object createBean(BeanDefinition definition) {
+    protected Object createBean(BeanDefinition definition) {
         log.debug("want to get Bean: {}", definition);
         if (definition.scope == ScopeType.PROTOTYPE) {
             var origin = prototypeCache.getOrDefault(definition, objectFactory.getBean(definition.clazz));
@@ -201,14 +208,14 @@ public class AbstractContainer implements Container {
         return instance;
     }
 
-    private Object createBean(Class<?> targetType) {
+    protected Object createBean(Class<?> targetType) {
         log.debug("want to get Bean which class: {}", targetType.getName());
         Method method = getBeanMethod(targetType);
         if (method == null) return null;
         return createBean(method);
     }
 
-    private Object createBean(Method method) {
+    protected Object createBean(Method method) {
         log.debug("want to get Bean which use method: {}", method);
         var instance = objectFactory.getBean(method, configObj);
         remainBeanMethods.remove(method);
@@ -232,7 +239,7 @@ public class AbstractContainer implements Container {
         }
     }
 
-    protected final Object proxyBean(Object bean, BeanDefinition definition) {
+    protected Object proxyBean(Object bean, BeanDefinition definition) {
         if (!enableProxy) return bean;
 
         var keyType = definition.keyType;
@@ -244,7 +251,7 @@ public class AbstractContainer implements Container {
         return proxyFactory.makeProxy(bean, aopObj);
     }
 
-    private Object createBeanFromFactoryBean(Class<?> clazz) {
+    protected Object createBeanFromFactoryBean(Class<?> clazz) {
         log.debug("want to get Bean from FactoryBean, which class: {}", clazz);
         var def = factoryBeanMap.get(clazz);
         FactoryBean<?> factoryBean;
@@ -267,26 +274,29 @@ public class AbstractContainer implements Container {
         return bean;
     }
 
-    private void injectConfigObj() {
+    protected void injectConfigObj() {
         valuesFactory.setPropsValue(configObj);
         objectFactory.injectBean(configObj);
     }
 
     protected Object getMapper(Class<?> clazz) {
         log.debug("want to get Mapper which class: {}", clazz.getName());
+        loadMappers();
         var sqlSessionFactory = getBean(SqlSessionFactory.class);
-        if (!hasAddMappers) {
-            loadMappers(sqlSessionFactory);
-        }
         var mapper = sqlSessionFactory.openSession(true).getMapper(clazz);
         var def = new BeanDefinition(clazz, mapper.getClass(), StringUtil.lowerFirst(clazz.getSimpleName()), ScopeType.SINGLETON);
         registerBean(def, mapper);
         return mapper;
     }
 
-    protected void loadMappers(SqlSessionFactory sqlSessionFactory) {
-        mapperPaths.forEach(sqlSessionFactory.getConfiguration()::addMappers);
-        hasAddMappers = true;
+
+
+    protected void loadMappers() {
+        if (!hasAddMappers) {
+            var sqlSessionFactory = getBean(SqlSessionFactory.class);
+            mapperPaths.forEach(sqlSessionFactory.getConfiguration()::addMappers);
+            hasAddMappers = true;
+        }
     }
 
     private Method getBeanMethod(Class<?> returnType) {

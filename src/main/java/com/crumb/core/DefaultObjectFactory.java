@@ -61,8 +61,9 @@ public class DefaultObjectFactory implements ObjectFactory {
 
     public void injectBean(Object bean) {
         var fields = ReflectUtil.getInjectableFields(bean.getClass());
+//                .stream().filter(f -> ReflectUtil.getFieldValue(f, bean) == null).collect(Collectors.toList());
         fields.forEach(field -> {
-            Object value = null;
+            Object value;
             if (field.isAnnotationPresent(Autowired.class)) {
                 value = objectGetterByType.getObject(field.getType());
             } else {

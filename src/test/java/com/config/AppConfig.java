@@ -1,6 +1,7 @@
 package com.config;
 
 import com.crumb.annotation.*;
+import com.crumb.data.EnableTransactionManagement;
 
 
 import java.util.Random;
@@ -8,6 +9,7 @@ import java.util.Random;
 @MainConfiguration
 @Configuration
 @EnableAspectProxy
+@EnableTransactionManagement
 public class AppConfig {
 
     @Bean(name = "retardName")

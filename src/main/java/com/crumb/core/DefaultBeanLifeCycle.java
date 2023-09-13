@@ -9,6 +9,7 @@ import com.crumb.beanProcess.InitializingBean;
 import com.crumb.definition.BeanDefinition;
 import com.crumb.exception.MethodRuleException;
 import com.crumb.proxy.ProxyObject;
+import com.crumb.util.ProxyUtil;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
@@ -17,12 +18,12 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 public class DefaultBeanLifeCycle implements BeanLifeCycle {
-    private final Consumer<Object> valuesInjector;
-    private final FieldsInjector fieldsInjector;
-    private final ProxyProvider proxyProvider;
-    private final Set<BeanPostProcessor> processors;
-    private Set<DestructionAwareBeanPostProcessor> desProcessors;
-    private boolean hasInitDesProcessor = false;
+    protected final Consumer<Object> valuesInjector;
+    protected final FieldsInjector fieldsInjector;
+    protected final ProxyProvider proxyProvider;
+    protected final Set<BeanPostProcessor> processors;
+    protected Set<DestructionAwareBeanPostProcessor> desProcessors;
+    protected boolean hasInitDesProcessor = false;
 
     public DefaultBeanLifeCycle(Consumer<Object> valuesInjector, FieldsInjector fieldsInjector,
                                 ProxyProvider proxyProvider, Set<BeanPostProcessor> processors) {
@@ -37,7 +38,7 @@ public class DefaultBeanLifeCycle implements BeanLifeCycle {
         String beanName = definition.name;
         valuesInjector.accept(origin);
         var proxyInstance = proxyProvider.proxyBean(origin, definition);
-        fieldsInjector.inject(proxyInstance, definition);
+        fieldsInjector.inject(origin, definition);
 
         for (var processor : processors) {
             proxyInstance = processor.postProcessBeforeInitialization(proxyInstance, beanName);
@@ -77,11 +78,11 @@ public class DefaultBeanLifeCycle implements BeanLifeCycle {
 
     }
 
-    private void initBean(Object bean) {
+    protected void initBean(Object bean) {
         Class<?> clazz;
 
         if (bean instanceof ProxyObject) {
-            clazz = bean.getClass().getSuperclass();
+            clazz = ProxyUtil.getOriginClass(bean.getClass());
         } else {
             clazz = bean.getClass();
         }
@@ -104,11 +105,11 @@ public class DefaultBeanLifeCycle implements BeanLifeCycle {
         }
     }
 
-    private void destroyBean(Object bean) {
+    protected void destroyBean(Object bean) {
         Class<?> clazz;
 
         if (bean instanceof ProxyObject) {
-            clazz = bean.getClass().getSuperclass();
+            clazz = ProxyUtil.getOriginClass(bean.getClass());
         } else {
             clazz = bean.getClass();
         }

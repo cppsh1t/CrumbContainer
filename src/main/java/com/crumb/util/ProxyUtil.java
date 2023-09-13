@@ -9,6 +9,7 @@ import com.crumb.annotation.Before;
 import com.crumb.exception.MethodRuleException;
 import com.crumb.proxy.AopBase;
 import com.crumb.proxy.JoinPoint;
+import com.crumb.proxy.ProxyObject;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
@@ -89,6 +90,14 @@ public class ProxyUtil {
         } catch (Exception e) {
             throw new MethodRuleException("Around requires a parameter of type JoinPoint and has a return type of Object");
         }
+    }
+
+    public static Class<?> getOriginClass(Class<?> proxyClass) {
+        var superClass = proxyClass.getSuperclass();
+        if (ProxyObject.class.isAssignableFrom(superClass)) {
+            return getOriginClass(superClass);
+        }
+        return superClass;
     }
 
 }

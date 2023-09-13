@@ -119,4 +119,21 @@ public class ReflectUtil {
         return "";
     }
 
+    public static Object getFieldValue(Field field, Object obj) {
+        try {
+            field.setAccessible(true);
+            return field.get(obj);
+        } catch (IllegalAccessException e) {
+            return null;
+        }
+    }
+
+    public static Method getMethod(Class<?> clazz, String methodName) {
+        try {
+            return clazz.getDeclaredMethod(methodName);
+        } catch (NoSuchMethodException e) {
+            throw new RuntimeException("impossible");
+        }
+    }
+
 }

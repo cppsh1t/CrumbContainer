@@ -10,6 +10,15 @@
     <name>crumbContainer</name>
     <description>a simple ioc container</description>
     <build>
+<!--        <resources>-->
+<!--            <resource>-->
+<!--                <directory>src/main/resources</directory>-->
+<!--                <excludes>-->
+<!--                    <exclude>application.yaml</exclude>-->
+<!--                </excludes>-->
+<!--            </resource>-->
+<!--        </resources>-->
+
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -86,7 +95,6 @@
                     </execution>
                 </executions>
             </plugin>
-
         </plugins>
 
     </build>

@@ -2,34 +2,58 @@ package com.crumb.proxy;
 
 import com.crumb.annotation.Autowired;
 import com.crumb.core.ObjectGetterByType;
+import com.crumb.core.ProxyProvider;
+import com.crumb.data.Transactional;
+import com.crumb.definition.BeanDefinition;
 import com.crumb.exception.MethodRuleException;
 import com.crumb.util.ReflectUtil;
 import lombok.extern.slf4j.Slf4j;
 import net.bytebuddy.ByteBuddy;
 import net.bytebuddy.implementation.MethodDelegation;
 import net.bytebuddy.matcher.ElementMatchers;
+import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.session.SqlSessionFactory;
 
-
+import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.stream.Collectors;
 
 @Slf4j
-public class DefaultProxyFactory implements ProxyFactory {
+public class TransactionProxyFactory implements ProxyFactory {
+
 
     protected final ByteBuddy buddy = new ByteBuddy();
     protected final ObjectGetterByType objectGetterByType;
 
-    public DefaultProxyFactory(ObjectGetterByType objectGetterByType) {
+    public TransactionProxyFactory(ObjectGetterByType objectGetterByType) {
         this.objectGetterByType = objectGetterByType;
     }
 
     @Override
     public Object makeProxy(Object origin, Object aopObj) {
         Class<?> clazz = origin.getClass();
-        Class<?> proxyType = buddy.subclass(clazz)
-                .implement(ProxyObject.class)
-                .method(ElementMatchers.any())
-                .intercept(MethodDelegation.to(new GeneralInterceptor(origin, aopObj)))
-                .make().load(getClass().getClassLoader()).getLoaded();
+        Class<?> proxyType;
+        boolean isTran = Arrays.stream(clazz.getDeclaredMethods()).anyMatch(m -> m.isAnnotationPresent(Transactional.class));
+
+        if (!isTran) {
+            proxyType = buddy.subclass(clazz)
+                    .implement(ProxyObject.class)
+                    .method(ElementMatchers.any())
+                    .intercept(MethodDelegation.to(new GeneralInterceptor(origin, aopObj)))
+                    .make().load(getClass().getClassLoader()).getLoaded();
+        } else {
+            var sqlSessionFactory = (SqlSessionFactory) objectGetterByType.getObject(SqlSessionFactory.class);
+
+            proxyType = buddy.subclass(clazz)
+                    .implement(ProxyObject.class)
+                    .method(ElementMatchers.any())
+                    .intercept(MethodDelegation.to(new TransactionInterceptor(origin, aopObj, sqlSessionFactory)))
+                    .make().load(getClass().getClassLoader()).getLoaded();
+        }
+
+
 
         var autoCon = Arrays.stream(clazz.getDeclaredConstructors())
                 .filter(con -> con.isAnnotationPresent(Autowired.class))
@@ -61,6 +85,5 @@ public class DefaultProxyFactory implements ProxyFactory {
         log.debug("create the proxyInstance: {}", instance);
         return instance;
     }
-
 
 }

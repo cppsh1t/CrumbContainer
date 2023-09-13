@@ -9,16 +9,10 @@ import com.crumb.mail.MailMessage;
 import com.crumb.mail.MailSender;
 import com.crumb.mail.SimpleMailMessage;
 import com.crumb.proxy.ProxyObject;
-import com.entity.Foo;
-import com.entity.IFoo;
-import com.entity.Stone;
+import com.entity.*;
 import com.mapper.TestMapper;
-
-import javax.mail.Message;
-import javax.mail.MessagingException;
-import javax.mail.internet.InternetAddress;
-import java.util.Arrays;
-import java.util.Properties;
+import com.service.StudentService;
+import com.service.StudentServiceImpl;
 
 
 public class MainTest {
@@ -27,12 +21,12 @@ public class MainTest {
 
 
     static {
-        Container.setLoggerLevel(Level.INFO);
+        Container.setLoggerLevel(Level.DEBUG);
         container = MainContainer.getContainer();
     }
 
     public static void main(String[] args) {
-        mailTest();
+        tranTest();
     }
 
     public static void dataTest() {
@@ -47,11 +41,6 @@ public class MainTest {
         System.out.println(inside);
     }
 
-    public static void normalTest() {
-        var stone = container.getBean(Stone.class);
-        System.out.println(stone.getWeight());
-    }
-
     public static void mailTest() {
         var mailSender = container.getBean(MailSender.class);
         var target1 = (String) container.getFromValues("crumb.mail.target1");
@@ -63,6 +52,19 @@ public class MainTest {
         message.setSubject("主题");
         message.setText("内容");
         mailSender.send(message);
+    }
+
+    public static void injectTest() {
+        var stone = container.getBean(Stone.class);
+        System.out.println(stone.getWeight());
+    }
+
+    public static void tranTest() {
+        var service = container.getBean(StudentService.class);
+        System.out.println(((StudentServiceImpl) service).getMapper());
+//        service.selectAll().forEach(System.out::println);
+        service.addStudent(new Student(24, "男", "牢大"));
+        service.selectAll().forEach(System.out::println);
     }
 
 }

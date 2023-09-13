@@ -32,7 +32,7 @@ public class GeneralInterceptor {
     @RuntimeType
     public Object intercept(@AllArguments Object[] args,
                             @Origin Method method) {
-        Object result = null;
+        Object result;
 
         if (method.getName().equals("getOrigin")) {
             return origin;
