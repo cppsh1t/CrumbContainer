@@ -30,13 +30,13 @@ public class DefaultValuesFactory implements ValuesFactory{
 
 
     private void parseYaml(String path) {
-        log.debug("parse yaml: {}", path);
+        log.debug("Parse yaml: {}", path);
         try (InputStream inputStream = classLoader.getResourceAsStream(path)) {
             if (inputStream == null) return;
             Map<String, Object> linkedMap = parser.load(inputStream);
             propMap.putAll(YamlUtil.castYaml(linkedMap));
         } catch (IOException exception) {
-            log.debug("can't find yaml: {}", path);
+            log.debug("Can't find yaml: {}", path);
         }
     }
 
@@ -61,7 +61,7 @@ public class DefaultValuesFactory implements ValuesFactory{
         String name = field.getDeclaredAnnotation(Value.class).value();
         Object value = getPropValue(name);
         ReflectUtil.setFieldValue(field, target, value);
-        log.debug("set value: {} on field: {} from Prop", value, field);
+        log.debug("Set value: {} on field: {} from Prop", value, field);
     }
 
 

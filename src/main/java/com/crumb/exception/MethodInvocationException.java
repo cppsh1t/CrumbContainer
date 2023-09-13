@@ -6,7 +6,7 @@ import java.util.Arrays;
 public class MethodInvocationException extends RuntimeException{
 
     public MethodInvocationException(Method method) {
-        super("method: " + method.getName() + " can't invoke");
+        super("Method: " + method.getName() + " can't invoke");
     }
 
 }

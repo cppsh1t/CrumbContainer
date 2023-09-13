@@ -27,11 +27,11 @@ public class DefaultObjectFactory implements ObjectFactory {
                     .map(ClassConverter::convertPrimitiveType)
                     .map(objectGetterByType::getObject).toArray();
             var instance = ReflectUtil.createInstance(autowiredCon, params);
-            log.debug("make the instance: {}, which use Autowired-Constructor: {}", instance, autowiredCon);
+            log.debug("Make the instance: {}, which use Autowired-Constructor: {}", instance, autowiredCon);
             return (T) instance;
         } else {
             var instance = ReflectUtil.createInstance(clazz);
-            log.debug("make the instance: {}, which use noArgs-Constructor", instance);
+            log.debug("Make the instance: {}, which use noArgs-Constructor", instance);
             return instance;
         }
 
@@ -41,20 +41,20 @@ public class DefaultObjectFactory implements ObjectFactory {
     public Object getBean(Method method, Object invoker) {
         if (method.getParameterCount() == 0) {
             var instance = ReflectUtil.invokeMethod(method, invoker);
-            log.debug("make the instance: {}, which use method: {}", instance, method);
+            log.debug("Make the instance: {}, which use method: {}", instance, method);
             return instance;
         } else if (method.getParameterCount() == 1) {
             var param = Arrays.stream(method.getParameterTypes())
                     .map(objectGetterByType::getObject).findFirst().orElse(null);
             var instance = ReflectUtil.invokeMethod(method, invoker, param);
-            log.debug("make the instance: {}, which use method: {}, params: {}", instance, method, param);
+            log.debug("Make the instance: {}, which use method: {}, params: {}", instance, method, param);
             return instance;
         } else {
             var params = Arrays.stream(method.getParameterTypes())
                     .map(objectGetterByType::getObject)
                     .collect(Collectors.toList());
             var instance = ReflectUtil.invokeMethod(method, invoker, params);
-            log.debug("make the instance: {}, which use method: {}, params: {}", instance, method, params);
+            log.debug("Make the instance: {}, which use method: {}, params: {}", instance, method, params);
             return instance;
         }
     }
@@ -70,7 +70,7 @@ public class DefaultObjectFactory implements ObjectFactory {
                 value = objectGetterByName.getObject(field.getName());
             }
             ReflectUtil.setFieldValue(field, bean, value);
-            log.debug("set value: {} on field: {}, targetBean: {}", value, field.getName(), bean);
+            log.debug("Set value: {} on field: {}, targetBean: {}", value, field.getName(), bean);
         });
     }
 }

@@ -32,7 +32,7 @@ public class AutoBeanScanner implements BeanScanner{
             classes.forEach(comType -> {
                 var def = BeanDefinitionBuilder.getComponentDef(comType);
                 list.add(def);
-                log.debug("get beanDefinition: {}", def);
+                log.debug("Get beanDefinition: {}", def);
             });
         });
         return list;

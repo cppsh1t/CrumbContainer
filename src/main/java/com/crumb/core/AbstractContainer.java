@@ -124,7 +124,7 @@ public class AbstractContainer implements Container {
     }
 
     protected void processConfig() {
-        log.debug(BLUE + "start processing configuration" + RESET);
+        log.debug(BLUE + "Start processing configuration" + RESET);
         mapperPaths.addAll(MapperPathParser.getMapperPaths(configClass));
 
         beanDefSet.addAll(scanner.getBeanDefinition(configClass));
@@ -147,27 +147,27 @@ public class AbstractContainer implements Container {
 
         configObj = ReflectUtil.createInstance(configClass);
         injectConfigObj();
-        log.debug(BLUE + "end processing configuration" + RESET);
+        log.debug(BLUE + "End processing configuration" + RESET);
     }
 
     protected void createComponents() {
-        log.debug(BLUE + "start creating components" + RESET);
+        log.debug(BLUE + "Start creating components" + RESET);
 
         for (var def : processorDefs) {
             var processor = createBean(def);
             postProcessors.add((BeanPostProcessor) processor);
-            log.debug("proactively created the processor: {}", processor);
+            log.debug("Proactively created the processor: {}", processor);
         }
 
         for (var def : remainBeanDefSet) {
             var component = createBean(def);
-            log.debug("proactively created the component: {}", component);
+            log.debug("Proactively created the component: {}", component);
         }
         for (var method : remainBeanMethods) {
             var component = createBean(method);
-            log.debug("proactively created the component: {}", component);
+            log.debug("Proactively created the component: {}", component);
         }
-        log.debug(BLUE + "end creating components" + RESET);
+        log.debug(BLUE + "End creating components" + RESET);
     }
 
     protected final Object getBeanInside(Class<?> clazz) {
@@ -176,7 +176,7 @@ public class AbstractContainer implements Container {
         }
 
         var finalClazz = ClassConverter.convertPrimitiveType(clazz);
-        log.debug("want to find Bean which class: {}", finalClazz.getName());
+        log.debug("Want to find Bean which class: {}", finalClazz.getName());
         var definition = getBeanDefinition(finalClazz);
         if (definition != null) {
             return createBean(definition);
@@ -191,7 +191,7 @@ public class AbstractContainer implements Container {
     }
 
     protected Object createBean(BeanDefinition definition) {
-        log.debug("want to get Bean: {}", definition);
+        log.debug("Want to get Bean: {}", definition);
         if (definition.scope == ScopeType.PROTOTYPE) {
             var origin = prototypeCache.getOrDefault(definition, objectFactory.getBean(definition.clazz));
             return lifeCycle.makeLifeCycle(origin, definition);
@@ -209,14 +209,14 @@ public class AbstractContainer implements Container {
     }
 
     protected Object createBean(Class<?> targetType) {
-        log.debug("want to get Bean which class: {}", targetType.getName());
+        log.debug("Want to get Bean which class: {}", targetType.getName());
         Method method = getBeanMethod(targetType);
         if (method == null) return null;
         return createBean(method);
     }
 
     protected Object createBean(Method method) {
-        log.debug("want to get Bean which use method: {}", method);
+        log.debug("Want to get Bean which use method: {}", method);
         var instance = objectFactory.getBean(method, configObj);
         remainBeanMethods.remove(method);
         var def = BeanDefinitionBuilder.getMethodBeanDef(method);
@@ -226,16 +226,16 @@ public class AbstractContainer implements Container {
 
     protected final void injectBean(Object bean, BeanDefinition definition) {
         if (!ReflectUtil.hasAnnotationsOnField(definition.clazz, new Class[]{Autowired.class, Resource.class})) return;
-        log.debug("want to inject Bean: {}, which definition: {}", bean, definition);
+        log.debug("Want to inject Bean: {}, which definition: {}", bean, definition);
         boolean isPrototype = definition.scope == ScopeType.PROTOTYPE;
         var targetCache = isPrototype ? prototypeCache : earlySingletonObjects;
 
         if (!targetCache.containsKey(definition)) {
-            log.debug("put {} into cache", bean);
+            log.debug("Put {} into cache", bean);
             targetCache.put(definition, bean);
             objectFactory.injectBean(bean);
             targetCache.remove(definition);
-            log.debug("remove {} from cache", bean);
+            log.debug("Remove {} from cache", bean);
         }
     }
 
@@ -247,12 +247,12 @@ public class AbstractContainer implements Container {
         if (def == null) return bean;
 
         var aopObj = createBean(def);
-        log.debug("will proxy bean: {} with {}", bean, aopObj);
+        log.debug("Will proxy bean: {} with {}", bean, aopObj);
         return proxyFactory.makeProxy(bean, aopObj);
     }
 
     protected Object createBeanFromFactoryBean(Class<?> clazz) {
-        log.debug("want to get Bean from FactoryBean, which class: {}", clazz);
+        log.debug("Want to get Bean from FactoryBean, which class: {}", clazz);
         var def = factoryBeanMap.get(clazz);
         FactoryBean<?> factoryBean;
         if (def != null) {
@@ -280,7 +280,7 @@ public class AbstractContainer implements Container {
     }
 
     protected Object getMapper(Class<?> clazz) {
-        log.debug("want to get Mapper which class: {}", clazz.getName());
+        log.debug("Want to get Mapper which class: {}", clazz.getName());
         loadMappers();
         var sqlSessionFactory = getBean(SqlSessionFactory.class);
         var mapper = sqlSessionFactory.openSession(true).getMapper(clazz);
@@ -320,7 +320,7 @@ public class AbstractContainer implements Container {
 
     @Override
     public final Object getBean(String name) {
-        log.debug("want to get Bean which name: {}", name);
+        log.debug("Want to get Bean which name: {}", name);
         var def = getBeanDefinition(name);
         if (def != null) {
             return createBean(def);
@@ -341,7 +341,7 @@ public class AbstractContainer implements Container {
         if (!singletonObjects.containsKey(definition) || canOverride) {
             singletonObjects.put(definition, object);
             beanDefSet.add(definition);
-            log.debug("register Bean: {}, which definition: {}", object, definition);
+            log.debug("Register Bean: {}, which definition: {}", object, definition);
             return true;
         } else return false;
     }

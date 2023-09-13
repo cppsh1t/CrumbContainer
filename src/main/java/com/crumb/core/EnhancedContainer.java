@@ -34,7 +34,7 @@ public class EnhancedContainer extends AbstractContainer{
             if (def == null) return bean;
 
             var aopObj = createBean(def);
-            log.debug("will proxy bean: {} with {}", bean, aopObj);
+            log.debug("Will proxy bean: {} with {}", bean, aopObj);
             return proxyFactory.makeProxy(bean, aopObj);
         } else {
             boolean hasTran = Arrays.stream(bean.getClass().getDeclaredMethods())
@@ -42,11 +42,11 @@ public class EnhancedContainer extends AbstractContainer{
             if (def == null && !hasTran) return bean;
 
             if (def == null) {
-                log.debug("will proxy Transactional bean: {}", bean);
+                log.debug("Will proxy Transactional bean: {}", bean);
                 return proxyFactory.makeProxy(bean, null);
             } else {
                 var aopObj = createBean(def);
-                log.debug("will proxy Transactional bean: {} with {}", bean, aopObj);
+                log.debug("Will proxy Transactional bean: {} with {}", bean, aopObj);
                 return proxyFactory.makeProxy(bean, aopObj);
             }
         }

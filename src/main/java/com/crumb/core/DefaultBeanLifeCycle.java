@@ -96,7 +96,7 @@ public class DefaultBeanLifeCycle implements BeanLifeCycle {
                 postConstructMethod.invoke(bean);
             } catch (IllegalAccessException | InvocationTargetException e) {
                 e.printStackTrace();
-                throw new MethodRuleException("postConstructMethod must has noArgs");
+                throw new MethodRuleException("PostConstructMethod must has noArgs");
             }
         }
 
@@ -123,7 +123,7 @@ public class DefaultBeanLifeCycle implements BeanLifeCycle {
                 preDestroyMethod.invoke(bean);
             } catch (IllegalAccessException | InvocationTargetException e) {
                 e.printStackTrace();
-                throw new MethodRuleException("postConstructMethod must has noArgs");
+                throw new MethodRuleException("PostConstructMethod must has noArgs");
             }
         }
 

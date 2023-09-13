@@ -16,12 +16,12 @@ public class ComponentPathParser {
         if (clazz.isAnnotationPresent(ComponentScan.class)) {
             var path = clazz.getDeclaredAnnotation(ComponentScan.class).value();
             scanPaths.add(path);
-            log.debug("get componentScanPath: {}", path);
+            log.debug("Get componentScanPath: {}", path);
         }
         if (clazz.isAnnotationPresent(ComponentScans.class)) {
             var paths = clazz.getDeclaredAnnotation(ComponentScans.class).value();
             scanPaths.addAll(Arrays.asList(paths));
-            Arrays.stream(paths).forEach(p -> log.debug("get componentScanPath: {}", p));
+            Arrays.stream(paths).forEach(p -> log.debug("Get componentScanPath: {}", p));
         }
         return scanPaths;
     }

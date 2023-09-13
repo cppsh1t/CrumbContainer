@@ -70,7 +70,7 @@ public class TransactionProxyFactory implements ProxyFactory {
         if (paramTypes == null) {
             try {
                 var instance = ReflectUtil.createInstance(clazz);
-                log.debug("create the proxyInstance: {}", instance);
+                log.debug("Create the proxyInstance: {}", instance);
                 return instance;
             } catch (RuntimeException e) {
                 throw new MethodRuleException("Missing constructors available for proxy use");
@@ -82,7 +82,7 @@ public class TransactionProxyFactory implements ProxyFactory {
         var params = Arrays.stream(paramTypes)
                 .map(objectGetterByType::getObject).toArray();
         var instance = ReflectUtil.createInstance(autoCon, params);
-        log.debug("create the proxyInstance: {}", instance);
+        log.debug("Create the proxyInstance: {}", instance);
         return instance;
     }
 

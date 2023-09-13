@@ -51,11 +51,11 @@ public class DefaultBeanScanner implements BeanScanner {
 
         if (isSingleClass) {
             files.add(file);
-            log.debug("get componentFile: {}", file);
+            log.debug("Get componentFile: {}", file);
         } else if (file.isDirectory()) {
             List<File> childrenFiles = FileUtil.getAllFiles(file);
             files.addAll(childrenFiles);
-            childrenFiles.forEach(f -> log.debug("get componentFile: {}", f));
+            childrenFiles.forEach(f -> log.debug("Get componentFile: {}", f));
         }
         return files;
     }
@@ -86,7 +86,7 @@ public class DefaultBeanScanner implements BeanScanner {
 
                 var definition = BeanDefinitionBuilder.getComponentDef(clazz);
                 definitions.add(definition);
-                log.debug("get beanDefinition: {}", definition);
+                log.debug("Get beanDefinition: {}", definition);
             } catch (ClassNotFoundException e) {
                 e.printStackTrace();
             }
@@ -99,7 +99,7 @@ public class DefaultBeanScanner implements BeanScanner {
                 ? Arrays.stream(configurationClass.getDeclaredMethods())
                 .filter(method -> method.isAnnotationPresent(Bean.class)
                         && method.getReturnType() != void.class)
-                .peek(method -> log.debug("get beanMethod: {}", method))
+                .peek(method -> log.debug("Get beanMethod: {}", method))
                 .collect(Collectors.toList())
                 : new ArrayList<>();
     }
@@ -109,7 +109,7 @@ public class DefaultBeanScanner implements BeanScanner {
         definitions.forEach(def -> {
             if (FactoryBean.class.isAssignableFrom(def.clazz)) {
                 var beanClass = ReflectUtil.getFirstParamFromGenericInterface(def.clazz, FactoryBean.class);
-                log.debug("get factoryBeanDefinition: {}, which getObjectType: {}", def, beanClass.getName());
+                log.debug("Get factoryBeanDefinition: {}, which getObjectType: {}", def, beanClass.getName());
                 map.put(beanClass, def);
             }
         });
@@ -122,7 +122,7 @@ public class DefaultBeanScanner implements BeanScanner {
             var clazz = method.getReturnType();
             if (FactoryBean.class.isAssignableFrom(clazz)) {
                 var beanClass = ReflectUtil.getFirstParamFromGenericInterface(clazz, FactoryBean.class);
-                log.debug("get factoryBean which getObjectType: {}", beanClass.getName());
+                log.debug("Get factoryBean which getObjectType: {}", beanClass.getName());
                 map.put(beanClass, method);
             }
         });
@@ -132,7 +132,7 @@ public class DefaultBeanScanner implements BeanScanner {
     public Map<Class<?>, BeanDefinition> getAopBeanDefinition(Set<BeanDefinition> definitions) {
         var map = new HashMap<Class<?>, BeanDefinition>();
         definitions.stream().filter(def -> def.clazz.isAnnotationPresent(Aspect.class))
-                .peek(def -> log.debug("get AopBeanDefinition: {}", def))
+                .peek(def -> log.debug("Get AopBeanDefinition: {}", def))
                 .forEach(def -> map.put(def.clazz.getAnnotation(Aspect.class).value(), def));
         return map;
     }
